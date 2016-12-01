@@ -10,6 +10,22 @@
 	<version>2.0.15</version>
 	<name>Authz Parent (pom)</name>
 	<packaging>pom</packaging>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>
+		<name>AT&amp;T</name>
+	</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 	<description>This module is used to organize all of the common SWM (Software Manager) 
 		artifacts and capabilities that are inherited by all modules that are SWM
 		packaged.  This prevents duplication of these common artifacts, plugins, and 
