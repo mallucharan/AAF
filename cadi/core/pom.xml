@@ -1,0 +1,66 @@
+<!--
+    Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<groupId>com.att.cadi</groupId>
+		<artifactId>parent</artifactId>
+		<relativePath>..</relativePath>
+		<version>1.3.0</version>
+	</parent>
+	
+	<modelVersion>4.0.0</modelVersion>
+	<name>CADI Core Framework (Code, Access, Data, Identity)</name>
+	<artifactId>cadi-core</artifactId>
+	<packaging>jar</packaging>
+	
+	<dependencies>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+  			<artifactId>slf4j-api</artifactId>
+  			<scope>provided</scope>
+		</dependency>
+		
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<!-- Must put this in to turn on Signing, but Configuration itself is 
+					in Parent -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+			</plugin>
+			<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-jar-plugin</artifactId>
+			<configuration>
+				<archive>
+					<manifest>
+						<mainClass>com.att.cadi.CmdLine</mainClass>
+					</manifest>
+					<manifestEntries>
+						<Sealed>true</Sealed>
+					</manifestEntries>
+				</archive>
+			</configuration>
+			<executions>
+				<execution>
+					<id>test-jar</id>
+					<phase>package</phase>
+					<goals>
+						<goal>test-jar</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+		</plugins>
+	</build>
+
+</project>

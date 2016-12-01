@@ -1,0 +1,58 @@
+/*******************************************************************************
+ * Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+ *******************************************************************************/
+package com.att.cssa.rserv;
+
+import java.io.IOException;
+import java.security.Principal;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import com.att.inno.env.TimeTaken;
+import com.att.inno.env.TransStore;
+
+/**
+ * Create a new Transaction Object for each and every incoming Transaction
+ * 
+ * Attach to Request.  User "FilterHolder" mechanism to retain single instance.
+ * 
+ * TransFilter includes CADIFilter as part of the package, so that it can
+ * set User Data, etc, as necessary.
+ * 
+ *
+ */
+public abstract class TransOnlyFilter<TRANS extends TransStore> implements Filter {
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+	}
+	
+
+
+	protected abstract TRANS newTrans();
+	protected abstract TimeTaken start(TRANS trans, ServletRequest request);
+	protected abstract void authenticated(TRANS trans, Principal p);
+	protected abstract void tallyHo(TRANS trans);
+	
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		TRANS trans = newTrans();
+		
+		TimeTaken overall = start(trans,request);
+		try {
+			request.setAttribute(TransFilter.TRANS_TAG, trans);
+			chain.doFilter(request, response);
+		} finally {
+			overall.done();
+		}
+		tallyHo(trans);
+	}
+
+	@Override
+	public void destroy() {
+	};
+}

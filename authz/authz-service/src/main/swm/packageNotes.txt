@@ -1,0 +1,10 @@
+The following two commands can be used to create and approve a SWM installation package.
+
+These steps assume:
+	1.  The component has been added in SWM
+	2.  The java6 directory resides, by itself, under the directory '${artifactId}-${version}'
+	3.  The SWM client is executed from the same directory containing '${artifactId}-${version}'
+
+
+    attuid@swmcli- --> component pkgcreate -c ${groupId}:${artifactId}:${version} -d ${artifactId}-${version}
+    attuid@swmcli- --> component pkgapprove -c ${groupId}:${artifactId}:${version}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+ -->
+
+<descriptor version="1" xmlns="http://aft.att.com/swm/descriptor">
+	<platforms>
+		<platform architecture="*" os="*" osVersions="*"/> 
+	</platforms>
+	<paths>
+		<path name="/opt/app/aft/auth/${artifactId}/${version}" type="d" user="aft" group="aft" permissions="0755" recursive="true"/>
+	</paths>
+	<actions>
+		<action type="INIT">
+			<proc stage="PRE" user="aft" group="aft"/>
+			<proc stage="POST" user="aft" group="aft"/>
+		</action>
+		<action type="INST">
+			<proc stage="PRE" user="aft" group="aft"/>
+			<proc stage="POST" user="aft" group="aft"/>
+		</action>
+		<action type="DINST">
+			<proc stage="PRE" user="aft" group="aft"/>
+			<proc stage="POST" user="aft" group="aft"/>
+		</action>
+		<action type="FALL">
+			<proc stage="PRE" user="aft" group="aft"/>
+			<proc stage="POST" user="aft" group="aft"/>
+		</action>
+	</actions>
+</descriptor>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.att.authz</groupId>
+		<artifactId>parent</artifactId>
+		<version>2.0.15</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+		
+	<artifactId>authz-test</artifactId>
+	<name>Authz TestCases</name>
+	<description>TestCase Suite for Authz/Authn</description>
+	<packaging>jar</packaging>
+
+	<properties>
+		<maven.test.failure.ignore>false</maven.test.failure.ignore>
+		<project.swmVersion>0</project.swmVersion>
+
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>com.att.cadi</groupId>
+			<artifactId>cadi-aaf</artifactId>
+		</dependency>
+       
+	    <dependency>
+            <groupId>com.att.authz</groupId>
+            <artifactId>authz-client</artifactId>
+        </dependency>
+
+	    <dependency>
+            <groupId>com.att.authz</groupId>
+            <artifactId>authz-core</artifactId>
+        </dependency>
+
+	    <dependency>
+            <groupId>com.att.authz</groupId>
+            <artifactId>authz-cmd</artifactId>
+        </dependency>
+
+		<dependency>
+			<groupId>com.att.aft</groupId>
+			<artifactId>dme2</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.jmeter</groupId>
+			<artifactId>ApacheJMeter_java</artifactId>
+			<version>2.11</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+		  <plugins>
+			<plugin>
+	          <groupId>org.apache.maven.plugins</groupId>
+	          <artifactId>maven-failsafe-plugin</artifactId>
+	          <configuration>
+				<includes>
+	              <include>**/AAFJUnitTest.java</include>
+				</includes>
+			  </configuration>
+			</plugin>
+	
+			<plugin>
+	          <groupId>org.apache.maven.plugins</groupId>
+	          <artifactId>maven-surefire-plugin</artifactId>
+	          <configuration>
+				<excludes>
+	              <exclude>**/AAFJUnitTest.java</exclude>
+				</excludes>
+	          </configuration>
+			</plugin>
+	
+				<!-- plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.6</version>
+					<configuration>
+						<skip>true</skip>
+					</configuration>
+			    </plugin>
+				<plugin>
+					<groupId>com.att.aft.swm</groupId>
+					<artifactId>swm-plugin</artifactId>
+					<version>1.4.4.5</version>
+					<configuration>	
+						<componentName>com.att.authz:authz-test</componentName>
+						<distFilesRootDirPath>opt/app/aft/auth/${project.artifactId}/${project.jarVersion}</distFilesRootDirPath>
+						<fileGroupSrcDir>src/main/swm</fileGroupSrcDir>	
+						<scriptSourceDirectory>TestSuite</scriptSourceDirectory>
+						<scriptIncludes>
+							<scriptInclude>TestSuite/TC*</scriptInclude>
+						</scriptIncludes>
+						<scriptTargetDirectory>target/swm/package/nix/dist_files/opt/app/aft/auth/${project.artifactId}/${project.jarVersion}</scriptTargetDirectory>
+						<version>${project.version}.${project.swmVersion}</version>			
+						<autoApprove>false</autoApprove>
+						<dependencyExcludes/>
+						<fileMaps>
+							
+						</fileMaps>
+					</configuration>
+					<executions>
+						<execution>
+							<id>pkgstage</id>
+							<goals>
+								<goal>pkgstage</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>pkgcreate</id>
+							<goals>
+								<goal>pkgcreate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin -->
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

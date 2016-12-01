@@ -1,0 +1,125 @@
+<!--
+    Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<groupId>com.att.cadi</groupId>
+		<artifactId>parent</artifactId>
+		<version>1.3.0</version>
+		<relativePath>..</relativePath>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<name>CADI AAF (Application Authorization Framework) LUR</name>
+	<packaging>jar</packaging>
+	<artifactId>cadi-aaf</artifactId>
+	<dependencies>
+		<dependency>
+			<groupId>com.att.authz</groupId>
+			<artifactId>authz-client</artifactId>
+		</dependency>
+
+		  <dependency>
+			<groupId>com.att.cadi</groupId>
+			<artifactId>cadi-client</artifactId>
+		</dependency> 
+
+		<dependency>
+			<groupId>com.att.cadi</groupId>
+			<artifactId>cadi-client</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.att.aft</groupId>
+			<artifactId>dme2</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>javax.servlet</groupId>
+		    <artifactId>javax.servlet-api</artifactId>
+		    <version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+		    <artifactId>slf4j-log4j12</artifactId>
+		    <version>1.7.5</version>
+		    <scope>test</scope>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<plugins> 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+			</plugin>
+		
+				<!-- We want to create a Jar with Rosetta built in (since I don't want 
+				a separate deployment at this time Use this one as the jar to put in SWM 
+				packages -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<classifier>tests</classifier>
+					<archive>
+						<manifest>
+							<mainClass>com.att.cadi.cm.CmAgent</mainClass>
+						</manifest>
+
+						<manifestEntries>
+							<Sealed>true</Sealed>
+						</manifestEntries>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>full</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/assemble/cadi-aaf.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<!-- Also sign "full" -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>sign-full</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<archive>target/${project.artifactId}-${project.version}-full.jar</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>verify-full</id>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<archive>target/${project.artifactId}-${project.version}-full.jar</archive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		
+		</plugins>
+	</build>
+</project>
