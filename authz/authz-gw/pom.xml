@@ -40,10 +40,10 @@
 			<artifactId>cadi-aaf</artifactId>
 		</dependency>
 
-		<dependency> 
+	<!--	<dependency> 
 			<groupId>com.att.cadi</groupId>
 			<artifactId>cadi-tguard</artifactId>
-		</dependency>
+		</dependency>   -->
 		
 	</dependencies>
 	
@@ -64,7 +64,46 @@
 					</configuration>
 					<version>2.3.1</version>
 				</plugin>
-
+			<!--	<plugin>
+					<groupId>com.att.aft.swm</groupId>
+					<artifactId>swm-plugin</artifactId>
+					<version>1.4.4.12</version>
+					<configuration>	
+						
+						<componentName>com.att.authz:authz-gw</componentName>
+						<distFilesRootDirPath>/opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
+						<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>	
+						<version>${project.version}.${project.swmVersion}</version>			
+						<autoApprove>false</autoApprove>
+						<dependencyExcludes> 
+							<dependencyExclude>**/jetty*</dependencyExclude>
+							<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
+							<dependencyExclude>**/servlet-api-*</dependencyExclude>
+						</dependencyExcludes>
+						<artifactExcludes>
+							<artifactExclude>**/target/*.zip</artifactExclude>
+						</artifactExcludes>
+						
+						<resourceReplaceExcludeExts>
+							<resourceReplaceExcludeExt>.png</resourceReplaceExcludeExt>
+							<resourceReplaceExcludeExt>.jpg</resourceReplaceExcludeExt>
+						</resourceReplaceExcludeExts>
+					</configuration>
+					<executions>
+						<execution>
+							<id>pkgstage</id>
+							<goals>
+								<goal>pkgstage</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>pkgcreate</id>
+							<goals>
+								<goal>pkgcreate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>	
 				<plugin>
 			      <artifactId>maven-assembly-plugin</artifactId>
 			      <executions>
@@ -85,7 +124,7 @@
 			      		</configuration>
 			      	</execution>
 			      </executions>
-			    </plugin>
+			    </plugin>  -->
 			    
 			    <plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -101,6 +140,15 @@
 	</build>
 
 	<distributionManagement>
-
-	</distributionManagement> 
+		<repository>
+			<id>nexus</id>
+			<name>attarch-releases</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>attarch-snapshots</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

@@ -13,13 +13,13 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
 
-import com.att.aft.dme2.api.DME2FilterHolder;
-import com.att.aft.dme2.api.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
+import com.att.aft.dme2.api.DME2ServerProperties;
 import com.att.aft.dme2.api.DME2ServiceHolder;
-import com.att.aft.dme2.api.DME2ServletHolder;
-import com.att.aft.dme2.api.util.DME2MetricsFilter;
+import com.att.aft.dme2.api.util.DME2FilterHolder;
+import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
+import com.att.aft.dme2.api.util.DME2ServletHolder;
 import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.env.AuthzTransOnlyFilter;
@@ -98,22 +98,22 @@ public class FileServer extends RServlet<AuthzTrans>  {
 		        ///////////////////////
 		        List<DME2FilterHolder> flist = new ArrayList<DME2FilterHolder>();
 		        
-		        // Add DME2 Metrics
-		    	flist.add(new DME2FilterHolder(new DME2MetricsFilter(serviceName),"/*",edlist));
 		    	// Need TransFilter
 		    	flist.add(new DME2FilterHolder(new AuthzTransOnlyFilter(env),"/*",edlist));
 		        svcHolder.setFilters(flist);
 		        svcHolder.setServletHolders(slist);
 		        
 		        DME2Server dme2svr = dme2.getServer();
-		        dme2svr.setGracefulShutdownTimeMs(1000);
+		        DME2ServerProperties dsprops = dme2svr.getServerProperties();
+		        dsprops.setGracefulShutdownTimeMs(1000);
 
 		        env.init().log("Starting AAF FileServer with Jetty/DME2 server...");
 		        dme2svr.start();
 		        try {
 //		        	if(env.getProperty("NO_REGISTER",null)!=null)
 		        	dme2.bindService(svcHolder);
-		        	env.init().log("DME2 is available as HTTP on port:",dme2svr.getPort());
+		        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
+
 		            while(true) { // Per DME2 Examples...
 		            	Thread.sleep(5000);
 		            }

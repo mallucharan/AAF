@@ -12,6 +12,7 @@ import static com.att.cssa.rserv.HttpMethods.PUT;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -30,8 +31,8 @@ import com.att.authz.layer.Result;
 import com.att.authz.org.Executor;
 import com.att.authz.org.Organization;
 import com.att.authz.org.Organization.Expiration;
-import com.att.authz.org.Organization.Policy;
 import com.att.authz.org.Organization.Identity;
+import com.att.authz.org.Organization.Policy;
 import com.att.authz.service.mapper.Mapper;
 import com.att.authz.service.mapper.Mapper.API;
 import com.att.authz.service.validation.Validator;
@@ -63,7 +64,6 @@ import com.att.inno.env.util.Chrono;
 import com.att.inno.env.util.Split;
 
 import aaf.v2_0.CredRequest;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * AuthzCassServiceImpl implements AuthzCassService for 

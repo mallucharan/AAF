@@ -4,6 +4,7 @@
 package com.att.cmd.perm;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 import com.att.cadi.CadiException;
@@ -17,7 +18,7 @@ import com.att.inno.env.APIException;
 import aaf.v2_0.Nss;
 import aaf.v2_0.Perms;
 import aaf.v2_0.Pkey;
-import edu.emory.mathcs.backport.java.util.Collections;
+
 
 public class List extends BaseCmd<Perm> {
 //	private static final String LIST_PERM_DETAILS = "list permission details";

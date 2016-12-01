@@ -21,6 +21,7 @@ import com.att.cadi.client.Future;
 import com.att.cadi.client.Rcli;
 import com.att.cadi.client.Retryable;
 import com.att.cadi.http.HMangr;
+import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.APIException;
 import com.att.inno.env.Data.TYPE;
 import com.att.inno.env.Env;
@@ -103,8 +104,9 @@ public abstract class Cmd {
 	public void apis(int indent,StringBuilder sb) {
 	}
 
-	protected void api(StringBuilder sb, int _indent, String meth, String pathInfo, Class<?> cls,boolean head) {
-	        int indent = _indent;
+	protected void api(StringBuilder sb, int _indent, HttpMethods hmeth, String pathInfo, Class<?> cls,boolean head) {
+	    int indent = _indent;
+	    final String meth = hmeth.name();
 		if(head) {
 			sb.append('\n');
 			detailLine(sb,indent,"APIs:");

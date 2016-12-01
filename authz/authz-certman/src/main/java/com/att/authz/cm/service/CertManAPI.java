@@ -13,13 +13,13 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 import com.att.aft.dme2.api.DME2Exception;
-import com.att.aft.dme2.api.DME2FilterHolder;
-import com.att.aft.dme2.api.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
+import com.att.aft.dme2.api.DME2ServerProperties;
 import com.att.aft.dme2.api.DME2ServiceHolder;
-import com.att.aft.dme2.api.DME2ServletHolder;
-import com.att.aft.dme2.api.util.DME2MetricsFilter;
+import com.att.aft.dme2.api.util.DME2FilterHolder;
+import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
+import com.att.aft.dme2.api.util.DME2ServletHolder;
 import com.att.authz.cm.api.API_Artifact;
 import com.att.authz.cm.api.API_Cert;
 import com.att.authz.cm.ca.CA;
@@ -212,9 +212,6 @@ public class CertManAPI extends AbsServer {
 	        ///////////////////////
 	        List<DME2FilterHolder> flist = new ArrayList<DME2FilterHolder>();
 	        
-	        // Add DME2 Metrics
-        	flist.add(new DME2FilterHolder(new DME2MetricsFilter(serviceName),"/*",edlist));
-
 	        // Secure all GUI interactions with AuthzTransFilter
 	        flist.add(new DME2FilterHolder(
 	        		new AuthzTransFilter(env,aafcon,TrustChecker.NOTRUST),
@@ -225,14 +222,15 @@ public class CertManAPI extends AbsServer {
 	        svcHolder.setServletHolders(slist);
 	        
 	        DME2Server dme2svr = dme2.getServer();
-	        dme2svr.setGracefulShutdownTimeMs(1000);
+	        DME2ServerProperties dsprops = dme2svr.getServerProperties();
+	        dsprops.setGracefulShutdownTimeMs(1000);
 	
 	        env.init().log("Starting AAF Certman Jetty/DME2 server...");
 	        dme2svr.start();
 	        try {
 //	        	if(env.getProperty("NO_REGISTER",null)!=null)
 	        	dme2.bindService(svcHolder);
-	        	env.init().log("DME2 is available as HTTP"+(dme2svr.isSslEnable()?"/S":""),"on port:",dme2svr.getPort());
+	        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
 	            while(true) { // Per DME2 Examples...
 	            	Thread.sleep(5000);
 	            }

@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Properties;
 
 import com.att.aft.dme2.api.DME2Exception;
-import com.att.aft.dme2.api.DME2FilterHolder;
-import com.att.aft.dme2.api.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
+import com.att.aft.dme2.api.DME2ServerProperties;
 import com.att.aft.dme2.api.DME2ServiceHolder;
-import com.att.aft.dme2.api.DME2ServletHolder;
-import com.att.aft.dme2.api.util.DME2MetricsFilter;
+import com.att.aft.dme2.api.util.DME2FilterHolder;
+import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
+import com.att.aft.dme2.api.util.DME2ServletHolder;
 import com.att.authz.cadi.DirectAAFLur;
 import com.att.authz.cadi.DirectAAFUserPass;
 import com.att.authz.cadi.DirectCertIdentity;
@@ -216,9 +216,6 @@ public class AuthAPI extends AbsServer {
 	        		);
 	        
 	        List<DME2FilterHolder> flist = new ArrayList<DME2FilterHolder>();
-
-	        // Add DME2 Metrics
-        	flist.add(new DME2FilterHolder(new DME2MetricsFilter(serviceName),"/*",edlist));
 	        
 	        // Note: Need CADI to fill out User for AuthTransFilter... so it's first
     		// Make sure there is no AAF TAF configured for Filters
@@ -242,27 +239,27 @@ public class AuthAPI extends AbsServer {
 	        svcHolder.setServletHolders(slist);
 	        
 	        DME2Server dme2svr = dme2.getServer();
+	        DME2ServerProperties dsprops = dme2svr.getServerProperties();
 	        
 	        String hostname = env.getProperty("HOSTNAME",null);
 	        if(hostname!=null) {
-	        	dme2svr.setHostname(hostname);
+	        	dsprops.setHostname(hostname);
 	        	hostname=null;
 	        }
-	        dme2svr.setGracefulShutdownTimeMs(5000);
+	        dsprops.setGracefulShutdownTimeMs(5000);
 	
 	        env.init().log("Starting AAF Jetty/DME2 server...");
 	        dme2svr.start();
 	        try {
 //	        	if(env.getProperty("NO_REGISTER",null)!=null)
 	        	dme2.bindService(svcHolder);
-	        	;
-	        	env.init().log("DME2 is available as HTTP"+(dme2svr.isSslEnable()?"/S":""),"on port:",dme2svr.getPort());
+	        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
 	        	
 	        	// Start CacheInfo Listener
 	        	HMangr hman = new HMangr(env, new DME2Locator(env, dme2,"https://DME2RESOLVE/"+serviceName,true /*remove self from cache*/));
 				SecuritySetter<HttpURLConnection> ss;
 				
-//				InetAddress ip = InetAddress.getByName(dme2svr.getHostname());
+//				InetAddress ip = InetAddress.getByName(dsprops.getHostname());
 				SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(env);
 				String mechID;
 				if((mechID=env.getProperty(Config.AAF_MECHID))==null) {
@@ -284,7 +281,7 @@ public class AuthAPI extends AbsServer {
 				}
 				
 				//TODO Reenable Cache Update
-	    		CacheInfoDAO.startUpdate(env, hman, ss, dme2svr.getHostname(), dme2svr.getPort());
+	    		CacheInfoDAO.startUpdate(env, hman, ss, dsprops.getHostname(), dsprops.getPort());
 	        	
 	            while(true) { // Per DME2 Examples...
 	            	Thread.sleep(5000);

@@ -17,21 +17,6 @@
   <name>Authz Command</name>
   <description>Command Line Processor for Authz</description>
   <packaging>jar</packaging>
-	<url>https://github.com/att/AAF</url>
-	<licenses>
-		<license>
-		<name>BSD License</name>
-		<url> </url>
-		</license>
-	</licenses>
-	<developers>
-		<developer>
-		<name>Jonathan Gathman</name>
-		<email></email>
-	<organization>ATT</organization>
-	<organizationUrl></organizationUrl>
-		</developer>
-	</developers>
 
   <properties>
     <maven.test.failure.ignore>false</maven.test.failure.ignore>
@@ -55,6 +40,10 @@
       <version>2.14.2</version> 
     </dependency>
 
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-log4j12</artifactId>
+	</dependency>
 <!-- 
     <dependency>
       <groupId>com.att.aft</groupId>
@@ -100,65 +89,42 @@
 						<skip>true</skip>
 					</configuration>
 				</plugin>
-			<plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-javadoc-plugin</artifactId>
-			<configuration>
-			<failOnError>false</failOnError>
-			</configuration>
-			<executions>
-				<execution>
-					<id>attach-javadocs</id>
-					<goals>
-						<goal>jar</goal>
-					</goals>
-				</execution>
-			</executions>
-		</plugin> 
-	   
-	   
-	       <plugin>
-		      <groupId>org.apache.maven.plugins</groupId>
-		      <artifactId>maven-source-plugin</artifactId>
-		      <version>2.2.1</version>
-		      <executions>
-			<execution>
-			  <id>attach-sources</id>
-			  <goals>
-			    <goal>jar-no-fork</goal>
-			  </goals>
-			</execution>
-		      </executions>
-		    </plugin>
-	
 
-	<plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-gpg-plugin</artifactId>
-	    <version>1.5</version>
-	    <executions>
-		<execution>
-		    <id>sign-artifacts</id>
-		    <phase>verify</phase>
-		    <goals>
-			<goal>sign</goal>
-		    </goals>
-		</execution>
-	    </executions>
-	  </plugin> 
-			
-		<plugin>
-			<groupId>org.sonatype.plugins</groupId>
-			<artifactId>nexus-staging-maven-plugin</artifactId>
-			<version>1.6.7</version>
-			<extensions>true</extensions>
-			<configuration>
-			<serverId>ossrhdme</serverId>
-			<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-			<autoReleaseAfterClose>true</autoReleaseAfterClose>
-			</configuration>
-		</plugin>
+			<!--	<plugin>
+					<groupId>com.att.aft.swm</groupId>
+					<artifactId>swm-plugin</artifactId>
+					<version>1.4.4.5</version>
+					<configuration>
+						
+						<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
+						<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>
+						<version>${project.version}.${project.swmVersion}</version>
+						<autoApprove>false</autoApprove>
+						
+						<artifactIncludes>
+							<artifactInclude>**/authz-cmd*with-dependencies.jar</artifactInclude>
+						</artifactIncludes>
 
+						<dependencyExcludes>
+							<dependencyExclude>**/*</dependencyExclude>
+							
+						</dependencyExcludes>
+					</configuration>
+					<executions>
+						<execution>
+							<id>pkgstage</id>
+							<goals>
+								<goal>pkgstage</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>pkgcreate</id>
+							<goals>
+								<goal>pkgcreate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin> -->
 			</plugins>
 		<pluginManagement>
 			<plugins/>

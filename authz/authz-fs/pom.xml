@@ -16,26 +16,15 @@
 	<artifactId>authz-fs</artifactId>
 	<name>Authz File Server</name>
 	<description>Independent FileServer via HTTP (not S) for Public Files (i.e. CRLs)</description>
-	<url>https://github.com/att/AAF</url>
-	<licenses>
-		<license>
-		<name>BSD License</name>
-		<url> </url>
-		</license>
-	</licenses>
-	<developers>
-		<developer>
-		<name>Jonathan Gathman</name>
-		<email></email>
-	<organization>ATT</organization>
-	<organizationUrl></organizationUrl>
-		</developer>
-	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 		<project.swmVersion>9</project.swmVersion>
 	</properties>
+	<!-- scm>
+		<connection>scm:svn:svn://scm.it.att.com:13135/authz/authz-fs/trunk</connection>
+	</scm -->
+	
 		
 	<dependencies>
         <dependency>
@@ -64,7 +53,49 @@
 					</configuration>
 					<version>2.3.1</version>
 				</plugin>
-
+				<!-- <plugin>
+					<groupId>com.att.aft.swm</groupId>
+					<artifactId>swm-plugin</artifactId>
+					<version>1.4.4.12</version>
+					<configuration>	
+						
+						<componentName>com.att.authz:authz-fs</componentName>
+						<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
+						<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>	
+						<version>${project.version}.${project.swmVersion}</version>			
+						<autoApprove>false</autoApprove>
+						<dependencyExcludes> 
+							<dependencyExclude>**/jetty*</dependencyExclude>
+							<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
+							<dependencyExclude>**/servlet-api-2.5-20081211.jar</dependencyExclude>
+						</dependencyExcludes>
+						<artifactExcludes>
+							<artifactExclude>**/target/*.zip</artifactExclude>
+						</artifactExcludes>
+	
+						
+						<scriptSrcDir>src/main/data</scriptSrcDir>
+						<scriptTargetDir>target/swm/package/nix/dist_files/opt/app/aaf/${project.artifactId}/${project.version}/data</scriptTargetDir>
+						<resourceReplaceExcludeExts>
+							<resourceReplaceExcludeExt>.png</resourceReplaceExcludeExt>
+							<resourceReplaceExcludeExt>.jpg</resourceReplaceExcludeExt>
+						</resourceReplaceExcludeExts>
+					</configuration>
+					<executions>
+						<execution>
+							<id>pkgstage</id>
+							<goals>
+								<goal>pkgstage</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>pkgcreate</id>
+							<goals>
+								<goal>pkgcreate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>	
 				<plugin>
 			      <artifactId>maven-assembly-plugin</artifactId>
 			      <executions>
@@ -84,7 +115,7 @@
 			      		</configuration>
 			      	</execution>
 			      </executions>
-			    </plugin>
+			    </plugin>  -->
 			    
 			    <plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -100,5 +131,15 @@
 	</build>
 
 	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>attarch-releases</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>attarch-snapshots</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 </project>

@@ -16,26 +16,15 @@
 	<artifactId>authz-service</artifactId>
 	<name>Authz Service</name>
 	<description>API for Authorization and Authentication</description>
-	<url>https://github.com/att/AAF</url>
-	<licenses>
-		<license>
-		<name>BSD License</name>
-		<url> </url>
-		</license>
-	</licenses>
-	<developers>
-		<developer>
-		<name>Jonathan Gathman</name>
-		<email></email>
-	<organization>ATT</organization>
-	<organizationUrl></organizationUrl>
-		</developer>
-	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 		<project.swmVersion>1</project.swmVersion>
 	</properties>
+	<!-- scm>
+		<connection>scm:svn:svn://scm.it.att.com:13135/authz/authz-service/trunk</connection>
+	</scm -->
+	
 		
 	<dependencies>
         <dependency>
@@ -96,6 +85,8 @@
 			<groupId>com.att.cadi</groupId>
 			<artifactId>cadi-aaf</artifactId>
 		</dependency>
+
+	
 	
 		<!-- 
 		<dependency>
@@ -146,7 +137,42 @@
 					</configuration>
 					<version>2.3.1</version>
 				</plugin>
-				<plugin>
+		      <!--  <plugin>
+					<groupId>com.att.aft.swm</groupId>
+					<artifactId>swm-plugin</artifactId>
+					<version>1.4.4.5</version>
+					<configuration>	
+						
+						<componentName>com.att.authz:authz-service</componentName>
+						<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
+						<fileGroupSrcDir>src/main/swm</fileGroupSrcDir>	
+						<version>${project.version}.${project.swmVersion}</version>			
+						<autoApprove>false</autoApprove>
+						<dependencyExcludes> 
+							<dependencyExclude>**/jetty*</dependencyExclude>
+							<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
+							<dependencyExclude>**/servlet-api-2.5-20081211.jar</dependencyExclude>
+						</dependencyExcludes>
+						<artifactExcludes>
+							<artifactExclude>**/target/*.zip</artifactExclude>
+						</artifactExcludes>
+					</configuration>
+					<executions>
+						<execution>
+							<id>pkgstage</id>
+							<goals>
+								<goal>pkgstage</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>pkgcreate</id>
+							<goals>
+								<goal>pkgcreate</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin> -->
+				<!-- <plugin>
 			      <artifactId>maven-assembly-plugin</artifactId>
 			      <executions>
 			      	<execution>
@@ -166,14 +192,14 @@
 			      		</configuration>
 			      	</execution>
 			      </executions>
-			    </plugin>
+			    </plugin>  -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<configuration>
 						<skip>true</skip>
 					</configuration>
-			    </plugin>
+			    </plugin>  
 				
 				<!-- plugin>
 		           <artifactId>maven-antrun-plugin</artifactId>
@@ -200,5 +226,15 @@
 	</build>
 
 	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>attarch-releases</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>attarch-snapshots</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 </project>

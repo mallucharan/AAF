@@ -3,9 +3,9 @@
  *******************************************************************************/
 package com.att.cmd.user;
 
+import java.util.Collections;
 import java.util.Comparator;
 
-import com.att.aft.dme2.internal.jetty.http.HttpMethods;
 import com.att.cadi.CadiException;
 import com.att.cadi.LocatorException;
 import com.att.cadi.client.Future;
@@ -14,11 +14,11 @@ import com.att.cadi.client.Retryable;
 import com.att.cmd.AAFcli;
 import com.att.cmd.Cmd;
 import com.att.cmd.Param;
+import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.APIException;
 
 import aaf.v2_0.Users;
 import aaf.v2_0.Users.User;
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * List for Creds

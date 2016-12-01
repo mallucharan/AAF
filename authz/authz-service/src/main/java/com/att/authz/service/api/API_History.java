@@ -8,6 +8,7 @@ import static com.att.cssa.rserv.HttpMethods.GET;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -22,8 +23,6 @@ import com.att.authz.service.AuthAPI;
 import com.att.authz.service.Code;
 import com.att.authz.service.mapper.Mapper.API;
 import com.att.dao.aaf.cass.Status;
-
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
  * Pull certain types of History Info

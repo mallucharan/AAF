@@ -6,7 +6,6 @@ package com.att.cmd.role;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.att.aft.dme2.internal.jetty.http.HttpMethods;
 import com.att.cadi.CadiException;
 import com.att.cadi.LocatorException;
 import com.att.cadi.client.Future;
@@ -15,6 +14,7 @@ import com.att.cadi.client.Retryable;
 import com.att.cmd.AAFcli;
 import com.att.cmd.Cmd;
 import com.att.cmd.Param;
+import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.APIException;
 import com.att.inno.env.util.Chrono;
 

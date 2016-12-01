@@ -16,26 +16,14 @@
 	<artifactId>authz-gui</artifactId>
 	<name>Authz GUI (Mobile First)</name>
 	<description>GUI for Authz Management</description>
-	<url>https://github.com/att/AAF</url>
-	<licenses>
-		<license>
-		<name>BSD License</name>
-		<url> </url>
-		</license>
-	</licenses>
-	<developers>
-		<developer>
-		<name>Jonathan Gathman</name>
-		<email></email>
-	<organization>ATT</organization>
-	<organizationUrl></organizationUrl>
-		</developer>
-	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 		<project.swmVersion>28</project.swmVersion>
 	</properties>
+	<!-- scm>
+		<connection>scm:svn:svn://scm.it.att.com:13135/authz/authz-gui/trunk</connection>
+	</scm -->
 	
 		
 	<dependencies>
@@ -89,6 +77,11 @@
 		<dependency> 
 			<groupId>com.att.cadi</groupId>
 			<artifactId>cadi-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>gso</groupId>
+			<artifactId>GLCookieDecryption</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -189,5 +182,15 @@
 	</build>
 
 	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>attarch-releases</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>attarch-snapshots</name>
+			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 </project>

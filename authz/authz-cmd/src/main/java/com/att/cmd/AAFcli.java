@@ -441,9 +441,9 @@ public class AAFcli {
 			String aafUrl = gp.get(false, Config.AAF_URL, "https://DME2RESOLVE or Direct URL:port");
 
 			if(aafUrl!=null && aafUrl.contains("//DME2")) {
-				//gp.set(Config.AFT_LATITUDE,"Lookup from a Map App or table");
-			//	gp.set(Config.AFT_LONGITUDE,"Lookup from a Map App or table");
-				//gp.set(Config.AFT_ENVIRONMENT,"Check DME2 Installations");
+				gp.set(Config.AFT_LATITUDE,"Lookup from a Map App or table");
+				gp.set(Config.AFT_LONGITUDE,"Lookup from a Map App or table");
+				gp.set(Config.AFT_ENVIRONMENT,"Check DME2 Installations");
 			}
 
 			if (gp.err() != null) {
