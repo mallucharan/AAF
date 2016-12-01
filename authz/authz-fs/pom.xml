@@ -21,10 +21,6 @@
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 		<project.swmVersion>9</project.swmVersion>
 	</properties>
-	<!-- scm>
-		<connection>scm:svn:svn://scm.it.att.com:13135/authz/authz-fs/trunk</connection>
-	</scm -->
-	
 		
 	<dependencies>
         <dependency>
@@ -89,15 +85,5 @@
 	</build>
 
 	<distributionManagement>
-	<!--	<repository>
-			<id>nexus</id>
-			<name>attarch-releases</name>
-			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>nexus</id>
-			<name>attarch-snapshots</name>
-			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
-		</snapshotRepository> -->
 	</distributionManagement>
 </project>
