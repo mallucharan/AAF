@@ -20,5 +20,7 @@ node {
     sh "${mvnHome}/bin/mvn -f authz/authz-client/pom.xml -N clean deploy"
 	sh "${mvnHome}/bin/mvn -f inno/pom.xml clean deploy"
     sh "${mvnHome}/bin/mvn -f cadi/pom.xml clean deploy"
+	sh "${mvnHome}/bin/mvn -f authz/pom.xml clean deploy"
+	
    
 }
