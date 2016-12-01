@@ -16,6 +16,21 @@
 	<artifactId>authz-fs</artifactId>
 	<name>Authz File Server</name>
 	<description>Independent FileServer via HTTP (not S) for Public Files (i.e. CRLs)</description>
+	<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
