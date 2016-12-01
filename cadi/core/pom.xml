@@ -13,6 +13,8 @@
 	<name>CADI Core Framework (Code, Access, Data, Identity)</name>
 	<artifactId>cadi-core</artifactId>
 	<packaging>jar</packaging>
+	<url>https://github.com/att/AAF</url>
+	<description>CADI</description>
 	
 	<dependencies>
 
