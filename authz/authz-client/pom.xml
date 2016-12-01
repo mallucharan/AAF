@@ -10,6 +10,7 @@
 	<groupId>com.att.authz</groupId>
 	<version>2.6</version>
 	<packaging>jar</packaging>
+	<url>https://github.com/att/AAF</url>
 	<licenses>
 		<license>
 		<name>BSD License</name>
