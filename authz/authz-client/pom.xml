@@ -10,6 +10,21 @@
 	<groupId>com.att.authz</groupId>
 	<version>2.6</version>
 	<packaging>jar</packaging>
+	<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -110,17 +125,21 @@
 	</build>
 	
 	<distributionManagement>
-		<repository>
-			<id>nexus</id>
-			<name>attarch-releases</name>
-			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>nexus</id>
-			<name>attarch-snapshots</name>
-			<url>http://mavencentral.it.att.com:8084/nexus/content/repositories/attarch-snapshots</url>
-		</snapshotRepository>
+    		<snapshotRepository>
+      			<id>ossrhdme</id>
+      			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    		</snapshotRepository>
+    		<repository>
+      			<id>ossrhdme</id>
+      			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    		</repository>
 	</distributionManagement>
+	
+	<scm>
+		<connection>https://github.com/att/AAF.git</connection>
+		<developerConnection>${project.scm.connection}</developerConnection>
+		<url>http://github.com/att/AAF/tree/master</url>
+	</scm>
 
 </project>
 
