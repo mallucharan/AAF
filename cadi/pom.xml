@@ -40,12 +40,6 @@
 		</contributor>
 	</contributors>
 
-	<scm>
-		<connection>scm:git:ssh://codecloud.web.att.com/scm/st_aaf/cadi.git</connection>
-	  <tag>parent-1.3.0</tag>
-  </scm>
-
-
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
