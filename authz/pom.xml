@@ -386,4 +386,10 @@
     		</repository>
 	</distributionManagement>
 	
+	<scm>
+		<connection>https://github.com/att/AAF.git</connection>
+		<developerConnection>${project.scm.connection}</developerConnection>
+		<url>http://github.com/att/AAF/tree/master</url>
+	</scm>
+	
 </project>	
