@@ -61,7 +61,7 @@
 	<modules>
 		<module>core</module>
 		<module>client</module>
-		<!--  <module>aaf</module> -->
+		<module>aaf</module> 
 		<module>cass</module>
 		<!-- module>jetty</module -->
 		<!-- module>weblogic</module -->
@@ -99,11 +99,11 @@
 				<version>${project.version}</version>
 			</dependency>
 
-			<!--  <dependency>
+			<dependency>
 				<groupId>com.att.cadi</groupId>
 				<artifactId>cadi-aaf</artifactId>
 				<version>${project.version}</version>
-			</dependency> -->
+			</dependency> 
 
 		    <dependency>
 				<groupId>com.att.cadi</groupId>
