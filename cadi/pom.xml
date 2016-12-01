@@ -15,14 +15,14 @@
 		<url> </url>
 		</license>
 	</licenses>
-	<organization>
-		<name>AT&amp;T</name>
-	</organization>
-	<organizationUrl></organizationUrl>
 	<developers>
 		<developer>
 		<name>Jonathan Gathman</name>
 		<email></email>
+	<organization>
+		<name>AT&amp;T</name>
+	</organization>
+	<organizationUrl></organizationUrl>
 		</developer>
 	</developers>
 	<properties>
