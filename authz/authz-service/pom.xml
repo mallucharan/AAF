@@ -16,6 +16,21 @@
 	<artifactId>authz-service</artifactId>
 	<name>Authz Service</name>
 	<description>API for Authorization and Authentication</description>
+		<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>

@@ -17,6 +17,21 @@
 	<name>Authz Batch</name>
 	<description>Batch Processing for Authz</description>
 	<packaging>jar</packaging>
+		<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
 		<maven.test.failure.ignore>false</maven.test.failure.ignore>
