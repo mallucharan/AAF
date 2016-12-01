@@ -16,6 +16,21 @@
 	<artifactId>authz-certman</artifactId>
 	<name>AAF Certification Managmenent</name>
 	<description>Certificate Manager API</description>
+	<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
 		<project.swmVersion>45</project.swmVersion>
