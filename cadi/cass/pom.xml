@@ -15,10 +15,10 @@
 	<artifactId>cadi-cass</artifactId>
 
 	<dependencies>
-	<!--  	<dependency>
+		<dependency>
 			<groupId>com.att.cadi</groupId>
 			<artifactId>cadi-aaf</artifactId>
-		</dependency> -->
+		</dependency>
 		
 		<dependency>
     		<groupId>org.apache.cassandra</groupId>
