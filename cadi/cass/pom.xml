@@ -12,6 +12,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<name>CADI Cassandra Plugin</name>
 	<packaging>jar</packaging>
+	<url>https://github.com/att/AAF</url>
+	<description>CADI</description>
 	<artifactId>cadi-cass</artifactId>
 
 	<dependencies>
