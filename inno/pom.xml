@@ -9,6 +9,7 @@
 	<name>Parent POM for JG Innovation</name>
 	<version>1.2.11</version>
 	<packaging>pom</packaging>
+	<url>https://github.com/att/AAF</url>
 	<licenses>
 		<license>
 		<name>BSD License</name>
