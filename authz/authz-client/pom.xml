@@ -10,15 +10,28 @@
 	<groupId>com.att.authz</groupId>
 	<version>2.6</version>
 	<packaging>jar</packaging>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>
+		<name>AT&amp;T</name>
+	</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<swm-distFiles-path>/opt/app/aft/${project.artifactId}/${project.version}</swm-distFiles-path>
 		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 	</properties>
-	<!-- scm> 
-		<connection>scm:svn:svn://scm.it.att.com:13135/authz/authz-service/trunk</connection>
-	</scm -->
 	
 	<dependencies>
 		<dependency>
