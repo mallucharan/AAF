@@ -12,6 +12,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<name>CADI AAF (Application Authorization Framework) LUR</name>
 	<packaging>jar</packaging>
+	<url>https://github.com/att/AAF</url>
+	<description>CADI</description>
 	<artifactId>cadi-aaf</artifactId>
 	<dependencies>
 		<dependency>
