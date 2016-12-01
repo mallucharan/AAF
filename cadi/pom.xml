@@ -8,11 +8,25 @@
 	<name>CADI Parent POM (Code, Access, Data, Identity)</name>
 	<version>1.3.0</version>
 	<inceptionYear>2015-07-20</inceptionYear>
+	
+	<packaging>pom</packaging>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
 	<organization>
 		<name>AT&amp;T</name>
 	</organization>
-	<packaging>pom</packaging>
+	<organizationUrl></organizationUrl>
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
 
+		</developer>
+	</developers>
 	<properties>
 		<skipSigning>true</skipSigning>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -35,7 +49,7 @@
 	<contributors>
 		<contributor>
 			<name>Jonathan Gathman</name>
-			<email>jonathan.gathman@att.com</email>
+			<email></email>
 			<timezone>CST</timezone>
 		</contributor>
 	</contributors>
