@@ -116,49 +116,7 @@
 				</configuration>
 				<version>2.3.1</version>
 			</plugin>
-			<plugin>
-				<groupId>com.att.aft.swm</groupId>
-				<artifactId>swm-plugin</artifactId>
-				<version>1.4.4.12</version>
-				<configuration>	
-					<!--  <swmEnv>TEST</swmEnv> -->
-					<componentName>com.att.authz:authz-gui</componentName>
-					<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
-					<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>	
-					<version>${project.version}.${project.swmVersion}</version>			
-					<autoApprove>false</autoApprove>
-					<dependencyExcludes> <!-- Unneeded or duplicate Dependencies -->
-						<dependencyExclude>**/jetty*</dependencyExclude>
-						<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
-						<dependencyExclude>**/servlet-api-2.5-20081211.jar</dependencyExclude>
-					</dependencyExcludes>
-					<artifactExcludes>
-						<artifactExclude>**/target/*.zip</artifactExclude>
-					</artifactExcludes>
-
-					<!-- Hijack "Script" mechanism to put Themes in place -->
-					<scriptSrcDir>theme</scriptSrcDir>
-					<scriptTargetDir>target/swm/package/nix/dist_files/opt/app/aaf/${project.artifactId}/${project.version}/theme</scriptTargetDir>
-					<resourceReplaceExcludeExts>
-						<resourceReplaceExcludeExt>.png</resourceReplaceExcludeExt>
-						<resourceReplaceExcludeExt>.jpg</resourceReplaceExcludeExt>
-					</resourceReplaceExcludeExts>
-				</configuration>
-				<executions>
-					<execution>
-						<id>pkgstage</id>
-						<goals>
-							<goal>pkgstage</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>pkgcreate</id>
-						<goals>
-							<goal>pkgcreate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>	
+	
 			<plugin>
 		      <artifactId>maven-assembly-plugin</artifactId>
 		      <executions>

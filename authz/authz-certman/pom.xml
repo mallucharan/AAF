@@ -82,67 +82,6 @@
 					</configuration>
 					<version>2.3.1</version>
 				</plugin>
-			<!--	<plugin>
-					<groupId>com.att.aft.swm</groupId>
-					<artifactId>swm-plugin</artifactId>
-					<version>1.4.4.12</version>
-					<configuration>	
-						
-						<componentName>com.att.authz:authz-certman</componentName>
-						<distFilesRootDirPath>/opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
-						<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>	
-						<version>${project.version}.${project.swmVersion}</version>			
-						<autoApprove>false</autoApprove>
-						<dependencyExcludes> 
-							<dependencyExclude>**/jetty*</dependencyExclude>
-							<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
-							<dependencyExclude>**/servlet-api-*</dependencyExclude>
-						</dependencyExcludes>
-						<artifactExcludes>
-							<artifactExclude>**/target/*.zip</artifactExclude>
-						</artifactExcludes>
-						
-						<resourceReplaceExcludeExts>
-							<resourceReplaceExcludeExt>.png</resourceReplaceExcludeExt>
-							<resourceReplaceExcludeExt>.jpg</resourceReplaceExcludeExt>
-						</resourceReplaceExcludeExts>
-					</configuration>
-					<executions>
-						<execution>
-							<id>pkgstage</id>
-							<goals>
-								<goal>pkgstage</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>pkgcreate</id>
-							<goals>
-								<goal>pkgcreate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>	
-				<plugin>
-			      <artifactId>maven-assembly-plugin</artifactId>
-			      <executions>
-			      	<execution>
-			      		<id>swm</id>
-			      		<phase>package</phase>
-			      		<goals>
-			      			<goal>single</goal>
-			      		</goals>
-			      		<configuration>
-			      			<finalName>authz-certman-${project.version}.${project.swmVersion}</finalName>
-			      		
-				      		 <descriptors>
-				          		<descriptor>../authz-service/src/main/assemble/swm.xml</descriptor>
-				        	</descriptors>
-				        	<archive>
-					        </archive>
-			      		</configuration>
-			      	</execution>
-			      </executions>
-			    </plugin> -->
 			    
 				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
 			

@@ -165,42 +165,6 @@
 			</configuration>
 		</plugin>
 		
-
-			<!--	<plugin>
-					<groupId>com.att.aft.swm</groupId>
-					<artifactId>swm-plugin</artifactId>
-					<version>1.4.4.5</version>
-					<configuration>
-						
-						<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
-						<fileGroupSrcDir>../authz-service/src/main/swm</fileGroupSrcDir>
-						<version>${project.version}.${project.swmVersion}</version>
-						<autoApprove>false</autoApprove>
-						
-						<artifactIncludes>
-							<artifactInclude>**/authz-cmd*with-dependencies.jar</artifactInclude>
-						</artifactIncludes>
-
-						<dependencyExcludes>
-							<dependencyExclude>**/*</dependencyExclude>
-							
-						</dependencyExcludes>
-					</configuration>
-					<executions>
-						<execution>
-							<id>pkgstage</id>
-							<goals>
-								<goal>pkgstage</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>pkgcreate</id>
-							<goals>
-								<goal>pkgcreate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin> -->
 			</plugins>
 		<pluginManagement>
 			<plugins/>

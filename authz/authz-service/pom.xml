@@ -149,62 +149,7 @@
 					</configuration>
 					<version>2.3.1</version>
 				</plugin>
-		      <!--  <plugin>
-					<groupId>com.att.aft.swm</groupId>
-					<artifactId>swm-plugin</artifactId>
-					<version>1.4.4.5</version>
-					<configuration>	
-						
-						<componentName>com.att.authz:authz-service</componentName>
-						<distFilesRootDirPath>opt/app/aaf/${project.artifactId}/${project.version}</distFilesRootDirPath>
-						<fileGroupSrcDir>src/main/swm</fileGroupSrcDir>	
-						<version>${project.version}.${project.swmVersion}</version>			
-						<autoApprove>false</autoApprove>
-						<dependencyExcludes> 
-							<dependencyExclude>**/jetty*</dependencyExclude>
-							<dependencyExclude>**/javax.servlet-3*</dependencyExclude>
-							<dependencyExclude>**/servlet-api-2.5-20081211.jar</dependencyExclude>
-						</dependencyExcludes>
-						<artifactExcludes>
-							<artifactExclude>**/target/*.zip</artifactExclude>
-						</artifactExcludes>
-					</configuration>
-					<executions>
-						<execution>
-							<id>pkgstage</id>
-							<goals>
-								<goal>pkgstage</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>pkgcreate</id>
-							<goals>
-								<goal>pkgcreate</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin> -->
-				<!-- <plugin>
-			      <artifactId>maven-assembly-plugin</artifactId>
-			      <executions>
-			      	<execution>
-			      		<id>swm</id>
-			      		<phase>package</phase>
-			      		<goals>
-			      			<goal>single</goal>
-			      		</goals>
-			      		<configuration>
-			      			<finalName>authz-service-${project.version}.${project.swmVersion}</finalName>
-			      		
-				      		 <descriptors>
-				          		<descriptor>src/main/assemble/swm.xml</descriptor>
-				        	</descriptors>
-				        	<archive>
-					        </archive>
-			      		</configuration>
-			      	</execution>
-			      </executions>
-			    </plugin>  -->
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
@@ -212,25 +157,6 @@
 						<skip>true</skip>
 					</configuration>
 			    </plugin>  
-				
-				<!-- plugin>
-		           <artifactId>maven-antrun-plugin</artifactId>
-		           <executions>
-		             <execution>
-		               <phase>package</phase>
-		               <goals>
-		                 <goal>run</goal>
-		               </goals>
-		               <configuration>
-		                 <tasks>           
-		                  <copy todir="${project.build.directory}/swm/package/nix/dist_files/opt/app/aft/${project.artifactId}/${project.version}/lib" overwrite="true">
-		                      <fileset dir="${basedir}/../authz-client/lib" includes="**/*.jar" />
-		                  </copy>         
-		                 </tasks>
-		                  </configuration>
-		             </execution>
-		           </executions>
-		         </plugin -->
 
 		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
