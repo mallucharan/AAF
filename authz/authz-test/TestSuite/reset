@@ -1,4 +1,4 @@
 set m12345=<pass>
 as m12345
-ns create com.test jg1555 testid@aaf.att.com
+ns create com.test test testid@aaf.att.com
 

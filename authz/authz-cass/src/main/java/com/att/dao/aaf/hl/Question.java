@@ -283,8 +283,6 @@ public class Question {
 			}
 		}
 
-		// Note: It should be ok for a Valid user to have no permissions -
-		// jg1555 8/12/2013
 		List<PermDAO.Data> perms = new ArrayList<PermDAO.Data>();
 		for (String perm : permNames) {
 			Result<PermDAO.Data> pr = PermDAO.Data.decode(trans, this, perm);

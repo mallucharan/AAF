@@ -39,7 +39,7 @@ public class JU_ArtiDAO  extends AbsJUCass {
 	        data.dir="/opt/app/aft/keys";
 	        data.appName="kumquat";
 	        data.os_user="aft";
-	        data.notify="email:jg1555@us.att.com";
+	        data.notify="email:test@us.att.com";
 	        data.expires=new Date();
 	        
 //	        Bytification

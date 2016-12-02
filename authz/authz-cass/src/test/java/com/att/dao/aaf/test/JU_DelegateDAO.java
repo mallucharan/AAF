@@ -23,8 +23,8 @@ public class JU_DelegateDAO  extends AbsJUCass {
 	public void testCRUD() throws Exception {
 		DelegateDAO dao = new DelegateDAO(trans, cluster, AUTHZ);
 		DelegateDAO.Data data = new DelegateDAO.Data();
-		data.user = "jg1555";
-		data.delegate = "rd8227";
+		data.user = "test";
+		data.delegate = "test1";
 		data.expires = new Date();
 		
 //        Bytification

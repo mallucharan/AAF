@@ -183,7 +183,6 @@
 		</xs:complexType>
 	</xs:element>
 
-	<!-- Added userRole return types jg1555 9/16/2015 -->
 	<xs:element name="userRole">
 		<xs:complexType>
 			<xs:sequence>
@@ -194,7 +193,6 @@
 		</xs:complexType>
 	</xs:element>
 	
-	<!-- Added userRoles return types jg1555 9/16/2015 -->
 	<xs:element name="userRoles">
 		<xs:complexType>
 			<xs:sequence>
@@ -292,10 +290,7 @@
 				       		<xs:element name="id" type="xs:string"  minOccurs="1" maxOccurs="1" />
 				       		<!-- Changed type to dateTime, because of importance of Certs -->
 				       		<xs:element name="expires" type="xs:dateTime" minOccurs="1" maxOccurs="1" />
-				       		<!-- need to differentiate User Cred Types, jg1555 5/20/2015
-				       			 This Return Object is shared by multiple functions: 
-				       			 	Type is not returned for "UserRole", but only "Cred" 
-				       		-->
+
 				       		<xs:element name="type" type="xs:int" minOccurs="0" maxOccurs="1" />
 		   				</xs:sequence>
 		   			</xs:complexType>
@@ -304,10 +299,6 @@
 		</xs:complexType>
 	</xs:element>
 
-<!-- 
-	Certs
-	Added jg1555 5/20/2015 to support identifying Certificate based Services
- -->
 	<xs:element name="certs">
 		<xs:complexType>
 			<xs:sequence>

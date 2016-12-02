@@ -50,7 +50,6 @@ public class CachedRoleDAO extends CachedDAO<AuthzTrans,RoleDAO, RoleDAO.Data> {
 	public Result<List<Data>> readChildren(AuthzTrans trans, final String ns, final String name) {
 		// At this point, I'm thinking it's better not to try to cache "*" results
 		// Data probably won't be accurate, and adding it makes every update invalidate most of the cache
-		// jg1555 2/4/2014
 		return dao().readChildren(trans,ns,name);
 	}
 

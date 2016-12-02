@@ -28,11 +28,6 @@ public class JU_Bytification {
 		NsDAO.Data ns = new NsDAO.Data();
 		ns.name = "com.att.<pass>";
 		ns.type = NsType.APP.type;
-//		ns.admin(true).add("jg1555@us.att.com");
-//		ns.admin(true).add("eo9537@us.att.com");
-//
-//		ns.responsible(true).add("jg1555@aaf.att.com");
-//		ns.responsible(true).add("eo5937@aaf.att.com");
 
 		ByteBuffer bb = ns.bytify();
 		
@@ -54,10 +49,6 @@ public class JU_Bytification {
 		nsr.reconstitute(bb);
 		check(ns,nsr);
 
-		/// 1000 Admin
-//		for(int i=0;i<1000;++i) {
-//			ns.admin(true).add("jg1555_" + i);
-//		}
 		bb = ns.bytify();
 		nsr = new NsDAO.Data();
 		nsr.reconstitute(bb);
@@ -186,7 +177,7 @@ public class JU_Bytification {
 	@Test
 	public void testUserRole() throws IOException {
 		UserRoleDAO.Data urd1 = new UserRoleDAO.Data();
-		urd1.user = "jg1555@abc.att.com";
+		urd1.user = "test@abc.att.com";
 		urd1.role("com.att.<pass>","my.role");
 		urd1.expires = new Date();
 

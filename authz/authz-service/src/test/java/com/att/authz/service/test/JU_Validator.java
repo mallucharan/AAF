@@ -180,7 +180,6 @@ public class JU_Validator {
 				"com.att.aft.swm:swm-cli"
 				).matches());
 
-		// JG1555 7/22/2016
 		assertTrue(Validator.INST_CHARS.matcher(
 				"/!com.att.*/role/write").matches());
 		assertTrue(Validator.INST_CHARS.matcher(

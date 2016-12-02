@@ -390,9 +390,7 @@ public abstract class AbsCassDAO<TRANS extends TransStore,DATA> {
 					if(reset || session == null) {
 						TimeTaken tt = trans.start(NEW_CASSANDRA_SESSION, Env.SUB);
 						try {
-							// Note: Maitrayee recommended not closing the cluster, just
-							// overwrite it. jg1555 9/30/2016 assuming same for Session
-							// This was a bad idea.  Ran out of File Handles as I suspected, jg1555
+
 							if(reset) {
 								for(AbsCassDAO<? extends TransStore, ?>.PSInfo psi : psinfos) {
 									psi.reset();

@@ -69,10 +69,7 @@ public class UserRoleDAO extends CassDAOImpl<AuthzTrans,UserRoleDAO.Data> {
 		
 		@Override
 		public int[] invalidate(Cached<?,?> cache) {
-			// Note: I'm not worried about Name collisions, because the formats are different:
-			// jg1555... etc versus
-			// com. ...
-			// The "dot" makes the difference.
+
 			return new int[] {
 				seg(cache,user,role),
 				seg(cache,user),
