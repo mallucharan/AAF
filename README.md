@@ -15,28 +15,41 @@ AAF contains some elements of Role Based Authorization, but includes Attribute B
  
 AAF can be cloned and repository and builb using Maven 
 In the repository 
+
 Go to Authz in the root
+
 	Run - mvn -N install
 Go to Authz-Client in the Authz directory in root
+
 	Run - mvn -N install
 Go to inno directory in the root
+
 	Run - mvn clean install
 Go to Cadi in the root 
+
 	Run - mvn clean install
 Go to Authz directory in the root 
+
 	mvn - clean install
 Project Build will be Successful
+
 
 
 
   RUN 
 
 AAF is a Unix based service 
+
 Pre-requisites to run the service
+
 Cassandra Version 2.1.x
+
 Java JDK 1.8
+
 Install cassandra and load create default namespace 'authz' and load needed table into the database
+
 Sample init.cql is provided in the authz-cass module of Authz directory.
+
 Go to authz/authz-service module and run the service using start.sh (Modify the script as required. Default is provided in the code)
  
 
@@ -44,9 +57,13 @@ Go to authz/authz-service module and run the service using start.sh (Modify the 
   CONFIGURATION 
 
 Recommended 
+
 Environment - Unix based
+
 Java - 1.8
+
 Maven - 3.2.5 
+
 Cassandra - 2.1.x
 
  
