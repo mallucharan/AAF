@@ -2,7 +2,7 @@
  
 # APPLICATION AUTHORIZATION FRAMEWORK
 			       
-# OVERVIEW
+## OVERVIEW
   
 The purpose of AAF (Application Authorization Framework) is to organize software authorizations so that applications, tools and services can match the access needed to perform job functions.  This is a critical function for Cloud environments, as Services need to be able to be installed and running in a very short time, and should not be encumbered with local configurations of Users, Permissions and Passwords.
 
@@ -12,7 +12,7 @@ AAF contains some elements of Role Based Authorization, but includes Attribute B
  
  
 
-# BUILD  
+## BUILD  
  
 AAF can be cloned and repository and builb using Maven 
 In the repository 
@@ -37,7 +37,7 @@ Project Build will be Successful
 
 
 
-# RUN 
+## RUN 
 
 AAF is a Unix based service 
 
@@ -55,7 +55,7 @@ Go to authz/authz-service module and run the service using start.sh (Modify the 
  
 
  
-# CONFIGURATION 
+## CONFIGURATION 
 
 Recommended 
 
