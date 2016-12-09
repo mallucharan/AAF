@@ -14,6 +14,22 @@
 	<artifactId>rosetta</artifactId>
 	<packaging>jar</packaging>
 	<modelVersion>4.0.0</modelVersion>
+	<url>https://github.com/att/AAF</url>
+	<licenses>
+		<license>
+		<name>BSD License</name>
+		<url> </url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+		<name>Jonathan Gathman</name>
+		<email></email>
+	<organization>ATT</organization>
+	<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<dependencies>
 		<dependency>
