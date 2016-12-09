@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.att.aft.dme2.api.DME2Client;
-import com.att.aft.dme2.manager.registry.DME2Endpoint;
 import com.att.aft.dme2.api.DME2Exception;
 import com.att.aft.dme2.api.DME2Manager;
+import com.att.aft.dme2.manager.registry.DME2Endpoint;
 import com.att.aft.dme2.request.DmeUniformResource;
 import com.att.cadi.CadiException;
 import com.att.cadi.SecuritySetter;
@@ -76,7 +76,7 @@ public class DRcli extends Rcli<DME2Client> {
 			manager = DME2Manager.getDefaultInstance();
 		}
 		try {
-			DME2Endpoint[] endp = manager.getEndpoints(new DmeUniformResource( manager.getConfig(), uri ));
+			DME2Endpoint[] endp = manager.getEndpoints(new DmeUniformResource(manager.getConfig(),uri));
 			// Convert Searchable Endpoints to Direct Endpoints
 			for(DME2Endpoint de : endp) {
 				al.add(new DRcli(

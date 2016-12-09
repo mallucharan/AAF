@@ -252,7 +252,7 @@ public class CmdLine {
 			System.out.println("  keygen [<keyfile>]                     (Generates Key on file, or Std Out)");
 			System.out.println("  passgen <digits>                       (Generate Password of given size)");
 			System.out.println("  urlgen <digits>                        (Generate URL field of given size)");
-			System.out.println("  digest <your password> <keyfile>       (Encrypts to Key with \"keyfile\")");
+			System.out.println("  digest <keyfile>                       (Encrypts to Key with \"keyfile\")");
 			System.out.println("  csptest                                (Tests for CSP compatibility)");
 			System.out.println("  encode64 <your text>                   (Encodes to Base64)");
 			System.out.println("  decode64 <base64 encoded text>         (Decodes from Base64)");

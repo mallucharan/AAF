@@ -131,6 +131,15 @@ public class Symm {
 		}
 	}
 	
+	// Only used by keygen, which is intentionally randomized. Therefore, always use unordered
+	private  Symm(char[] codeset, Symm parent) {
+		this.codeset = codeset;
+		splitLinesAt = parent.splitLinesAt;
+		endEquals = parent.endEquals;
+		encoding = parent.encoding;
+		convert = new Unordered(codeset);
+	}
+	
 	public Symm copy(int lines) {
 		return new Symm(codeset,lines,encoding,endEquals);
 	}
@@ -445,6 +454,8 @@ public class Symm {
 				} catch (IOException e) {
 					access.log(e, "Cannot load keyfile");
 				}
+			} else {
+				access.log(Level.ERROR, file.getAbsolutePath(), "does not exist.");
 			}
 		}
 		return symm;
@@ -529,7 +540,7 @@ public class Symm {
    * @throws IOException
    */
   public void enpass(String password, OutputStream os) throws IOException {
-	  // reimplement for Opensource
+	 encode(password,os);
   }
 
   /**
@@ -542,7 +553,9 @@ public class Symm {
    * @throws IOException
    */
   public String depass(String password) throws IOException {
-	  if(password==null)return null;
+	  if(password==null) {
+		  return null;
+	  }
 	  ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	  depass(password,baos);
 	  return new String(baos.toByteArray());
@@ -559,8 +572,9 @@ public class Symm {
    * @throws IOException
    */
   public long depass(String password, OutputStream os) throws IOException {
-	  // reimplement for Open Source
-	  return 0;
+	 ByteArrayInputStream bais = new ByteArrayInputStream(password.startsWith(ENC)?password.substring(4).getBytes():password.getBytes());
+	 decode(bais, os);
+	 return 0;
   }
 
   public static String randomGen(int numBytes) {
@@ -576,8 +590,75 @@ public class Symm {
 	    }
 	    return sb.toString();
   }
+  
+  private class Obtain {
+	private ByteArrayInputStream bais;
+	private int skip = 0;
+	private int length;
+	  
+	  public Obtain(byte[] data, int length) {
+		  bais = new ByteArrayInputStream(data);
+		  this.length = length;
+	  }
+	  
+	  private int next() {
+		  if(bais.available()<Integer.SIZE/Byte.SIZE) {
+			  bais.reset();
+			  bais.skip(++skip); // add an offset so it is not the same
+		  }
+		  return bais.read()%length;
+	  }
+  };
   public Symm obtain(byte[] key) throws IOException {
-	  // reimplement for Open Source
-	  return base64;
+	  AES aes = null;
+	  try {
+		byte[] bytes = new byte[AES.AES_KEY_SIZE/8];
+		int offset = (Math.abs(key[(47%key.length)])+137)%(key.length-bytes.length);
+		for(int i=0;i<bytes.length;++i) {
+			bytes[i] = key[i+offset];
+		}
+
+	  	aes = new AES(bytes,0,bytes.length);
+	  
+		int filled = codeset.length;
+		char[] seq = new char[filled];
+		int end = filled--;
+		
+		boolean right = true;
+		int index;
+		
+		Obtain o = new Obtain(aes.encrypt(key),codeset.length);
+		
+		while(filled>=0) {
+			index = o.next();
+			if(index<0 || index>=codeset.length) {
+				System.out.println("uh, oh");
+			}
+			if(right) { // alternate going left or right to find the next open slot (keeps it from taking too long to hit something) 
+				for(int j=index;j<end;++j) {
+					if(seq[j]==0) {
+						seq[j]=codeset[filled];
+						--filled;
+						break;
+					}
+				}
+				right = false;
+			} else {
+				for(int j=index;j>=0;--j) {
+					if(seq[j]==0) {
+						seq[j]=codeset[filled];
+						--filled;
+						break;
+					}
+				}
+				right = true;
+			}
+		}
+		Symm rv = new Symm(seq,this);
+		rv.aes = aes;
+		return rv;
+	  } catch (Exception e) {
+		  throw new IOException(e);
+	  }
 	}
 }

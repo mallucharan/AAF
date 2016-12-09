@@ -12,10 +12,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
-import com.att.aft.dme2.manager.registry.DME2Endpoint;
+//jg1555@codecloud.web.att.com/scm/st_aaf/osaaf.git
 import com.att.aft.dme2.api.DME2Exception;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
+import com.att.aft.dme2.manager.registry.DME2Endpoint;
 import com.att.cadi.Access;
 import com.att.cadi.Access.Level;
 import com.att.cadi.Locator;
