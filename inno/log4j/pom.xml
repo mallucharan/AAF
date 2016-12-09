@@ -29,9 +29,25 @@
 		</dependency>
 	
 	</dependencies>
+	
+	<distributionManagement>
+    		<snapshotRepository>
+      			<id>ossrhdme</id>
+      			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    		</snapshotRepository>
+    		<repository>
+      			<id>ossrhdme</id>
+      			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    		</repository>
+	</distributionManagement>
+	
+	<scm>
+		<connection>https://github.com/att/AAF.git</connection>
+		<developerConnection>${project.scm.connection}</developerConnection>
+		<url>http://github.com/att/AAF/tree/master</url>
+	</scm>
 
 	<build>
-		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -42,7 +58,6 @@
 					</configuration>
 				</plugin>
 			</plugins>
-		</pluginManagement>
 	</build>
 	
 </project>
