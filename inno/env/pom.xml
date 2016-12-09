@@ -16,6 +16,7 @@
 	<name>Env</name>
 	<packaging>jar</packaging>
 	<url>https://github.com/att/AAF</url>
+	<description>INNO</description>
 	<licenses>
 		<license>
 		<name>BSD License</name>
