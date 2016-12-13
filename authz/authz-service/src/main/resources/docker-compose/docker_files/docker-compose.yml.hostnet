@@ -1,0 +1,38 @@
+version: '2'
+services:
+  aaf_container:
+    image: ecomp-nexus:51212/authz-service
+    network_mode: host
+    ports:
+      #- "8095:8095"
+      - "8101:8101"
+    #links:
+    #  - cassandra_container
+    volumes:
+      - ./authAPI.props:/opt/app/aaf/authz-service/2.0.15/etc/authAPI.props
+      - ./wait_for_host_port.sh:/tmp/wait_for_host_port.sh
+      - ./data2:/data
+      - ./runaafcli.sh:/opt/app/aaf/authz-service/2.0.15/runaafcli.sh
+      #- ./startupaaf.sh:/startup.sh
+      - ./com.osaaf.common.props:/opt/app/aaf/authz-service/2.0.15/etc/com.osaaf.common.props
+      #- ./com.osaaf.props:/opt/app/aaf/authz-service/2.0.15/etc/com.osaaf.props
+      # - ./authAPI.props:/opt/app/aaf/authz-service/2.0.15/etc/authAPI.props
+      #- ./sysctl.conf:/etc/sysctl.conf
+    #entrypoint: ["bash", "-c", "/tmp/wait_for_host_port.sh 127.0.0.1 9042; sleep 10; /bin/sh -c ./startup.sh"]
+    entrypoint: ["bash", "-c", "/tmp/wait_for_host_port.sh localhost 9042; sleep 20; /bin/sh -c ./startup.sh"]
+    #entrypoint: ["/bin/bash", "-c", "while sleep 2; do echo thinking; done"]
+    environment:
+      - CASSANDRA_CLUSTER=cassandra_container
+
+  cassandra_container:
+    image: cassandra:2.1.16
+    #network_mode: host
+    ports:
+      - "7000:7000"
+      - "7001:7001"
+      - "9042:9042"
+      - "9160:9160"
+    volumes:
+      - ./data:/data
+      - ./wait_for_host_port.sh:/tmp/wait_for_host_port.sh
+    entrypoint: ["bash", "-c", "(/tmp/wait_for_host_port.sh localhost 9042 cqlsh -f /data/init.cql -u cassandra -p cassandra localhost; cqlsh -f /data/ecomp.cql -u cassandra -p cassandra localhost) & (/docker-entrypoint.sh cassandra -f)"]
