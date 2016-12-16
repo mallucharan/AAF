@@ -30,9 +30,10 @@ aaf_refresh_trigger_count=3
 aaf_high_count=30000
 
 # Basic Auth
-aaf_default_realm=osaaf.com
-basic_realm=osaaf.com
+aaf_default_realm=org.openecomp
+basic_realm=org.openecomp
 basic_warn=false
+aaf_root_ns=org.openecomp
 localhost_deny=false
 
 # Cassandra
