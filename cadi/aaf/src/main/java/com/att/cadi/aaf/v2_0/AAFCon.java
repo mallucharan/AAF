@@ -106,7 +106,7 @@ public abstract class AAFCon<CLIENT> implements Connector {
 			}
 	
 			app=reverseDomain(ss.getID());
-			realm="aaf.att.com";
+			realm="openecomp.org";
 	
 			RosettaEnv env = new RosettaEnv();
 			permsDF = env.newDataFactory(Perms.class);

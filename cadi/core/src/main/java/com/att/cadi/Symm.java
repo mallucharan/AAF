@@ -435,10 +435,11 @@ public class Symm {
 		String keyfile = access.getProperty(Config.CADI_KEYFILE,null);
 		if(keyfile!=null) {
 			File file = new File(keyfile);
+			String filename;
 			try {
-				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",file.getCanonicalPath());
+				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",filename=file.getCanonicalPath());
 			} catch (IOException e1) {
-				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",file.getAbsolutePath());
+				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",filename=file.getAbsolutePath());
 			}
 			if(file.exists()) {
 				try {
@@ -455,7 +456,7 @@ public class Symm {
 					access.log(e, "Cannot load keyfile");
 				}
 			} else {
-				access.log(Level.ERROR, file.getAbsolutePath(), "does not exist.");
+				access.log(Level.ERROR, filename, "does not exist.");
 			}
 		}
 		return symm;

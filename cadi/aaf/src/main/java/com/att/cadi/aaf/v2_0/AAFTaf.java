@@ -50,6 +50,9 @@ public class AAFTaf<CLIENT> extends AbsUserCache<AAFPermission> implements HttpT
 
 		// Note: Either Carbon or Silicon based LifeForms ok
 		String auth = req.getHeader("Authorization");
+		
+		System.out.println("value of auth  ------1------- ++++++++++++++++++++++++++++++++++++++++++" +auth);
+		
 		if(auth == null) {
 			return new BasicHttpTafResp(aaf.access,null,"Requesting HTTP Basic Authorization",RESP.TRY_AUTHENTICATING,resp,aaf.getRealm(),false);
 		} else  {
@@ -57,37 +60,65 @@ public class AAFTaf<CLIENT> extends AbsUserCache<AAFPermission> implements HttpT
 			
 			try {
 				CachedBasicPrincipal bp = new CachedBasicPrincipal(this,auth,aaf.getRealm(),aaf.cleanInterval);
+				System.out.println(" value of aaf.getRealm  --------2--------- +++++++++++++++++++++++++++++++++++++++++++++" +aaf.getRealm() );
+				//System.out.println(" value of bp +++++++++++++++++++++++++++++++++++++++++++" +bp.toString());
+				System.out.println(" value of bp.getName() -------3----- +++++++++++++++++++++++++++++++++++++++++++" +bp.getName().toString());
+				System.out.println(" value of bp.getCred() -------4----- +++++++++++++++++++++++++++++++++++++++++++" +bp.getCred().toString());
+				
 				// First try Cache
 				User<AAFPermission> usr = getUser(bp);
+				
+			//	System.out.println(" value of usr -------5-------++++++++++++++++++++++++++++++++++++++++++" +usr.toString());
+				
 				if(usr != null && usr.principal != null) {
 					if(usr.principal instanceof GetCred) {
 						if(Hash.isEqual(bp.getCred(),((GetCred)usr.principal).getCred())) {
+							
 							return new BasicHttpTafResp(aaf.access,bp,bp.getName()+" authenticated by cached AAF password",RESP.IS_AUTHENTICATED,resp,aaf.getRealm(),false);
 						}
 					}
 				}
 				
 				Miss miss = missed(bp.getName());
+				 System.out.println(" value of miss before if loop  ---------6----- +++++++++++++++++++++++++++++++++++++" +miss );
 				if(miss!=null && !miss.mayContinue(bp.getCred())) {
+					
+					System.out.println(" In if(miss!=null && !miss.mayContinue(bp.getCred())) -------7--------+++++++++++++++++++++++++++++++++++++++++++++");
+					
 					return new BasicHttpTafResp(aaf.access,null,buildMsg(bp,req,
 							"User/Pass Retry limit exceeded"), 
 							RESP.FAIL,resp,aaf.getRealm(),true);
 				}
 				
 				Rcli<CLIENT> userAAF = aaf.client(AAFCon.AAF_VERSION).forUser(aaf.basicAuthSS(bp));
+				
+				//System.out.println("value of userAAF ------8---- +++++++++++++++++++++++" +userAAF);
+				//System.out.println("value of userAAF +++++++++++++++++++++++" +userAAF.);
 				Future<String> fp = userAAF.read("/authn/basicAuth", "text/plain");
+				
+				//System.out.println("value of fp --------9------ +++++++++++++++++++++++" +fp.toString());
+				
 				if(fp.get(aaf.timeout)) {
+					System.out.println("In fp.get check -----10----- +++++++++++++");
 					if(usr!=null)usr.principal = bp;
+
 					else addUser(new User<AAFPermission>(bp,aaf.cleanInterval));
 					return new BasicHttpTafResp(aaf.access,bp,bp.getName()+" authenticated by AAF password",RESP.IS_AUTHENTICATED,resp,aaf.getRealm(),false);
 				} else {
 					// Note: AddMiss checks for miss==null, and is part of logic
+					
+					System.out.println(" In the else part --------11--------++++++++++++++ ");
+					
 					boolean rv= addMiss(bp.getName(),bp.getCred());
+					System.out.println(" value of bp.getName() and bp.getCred() before if check  ----12--- ++++++++++++!!!!!!!!!!!++++++++++" +bp.getName() +"and " +bp.getCred());
+
 					if(rv) {
+						System.out.println("In if(rv) check -----13----- +++++++++++++");
 						return new BasicHttpTafResp(aaf.access,null,buildMsg(bp,req,
 								"User/Pass combo invalid via AAF"), 
 								RESP.TRY_AUTHENTICATING,resp,aaf.getRealm(),true);
 					} else {
+						System.out.println("In if(rv) else check -----14----- +++++++++++++");
 						return new BasicHttpTafResp(aaf.access,null,buildMsg(bp,req,
 								"User/Pass combo invalid via AAF - Retry limit exceeded"), 
 								RESP.FAIL,resp,aaf.getRealm(),true);
@@ -95,10 +126,16 @@ public class AAFTaf<CLIENT> extends AbsUserCache<AAFPermission> implements HttpT
 				}
 			} catch (IOException e) {
 				String msg = buildMsg(null,req,"Invalid Auth Token");
+				System.out.println("In IOException catch block -----15----- +++++++++++++");
+				e.getStackTrace();
+				e.printStackTrace();
 				aaf.access.log(Level.INFO,msg,'(', e.getMessage(), ')');
 				return new BasicHttpTafResp(aaf.access,null,msg, RESP.TRY_AUTHENTICATING, resp, aaf.getRealm(),true);
 			} catch (Exception e) {
 				String msg = buildMsg(null,req,"Authenticating Service unavailable");
+				System.out.println("In Exception catch block  -----16----- +++++++++++++");
+				e.getStackTrace();
+				e.printStackTrace();
 				aaf.access.log(Level.INFO,msg,'(', e.getMessage(), ')');
 				return new BasicHttpTafResp(aaf.access,null,msg, RESP.FAIL, resp, aaf.getRealm(),false);
 			}

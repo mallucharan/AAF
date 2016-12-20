@@ -195,13 +195,10 @@ public class X509Taf implements HttpTaf {
 
 			// if Principal is found, check for "AS_USER" and whether this entity is trusted to declare
 			if(prin!=null) {
-				String as_user=req.getHeader(Config.CADI_USER_CHAIN);
-				if(as_user!=null) {
-					if(as_user.startsWith("TGUARD ") && lur.fish(prin, new LocalPermission("com.att.aaf.trust|"+prin.getName()+"|tguard"))) {
-						prin = new TGuardPrincipal(as_user.substring(7));
-						responseText=prin.getName() + " set via trust of " + responseText;
-					}
-				}
+//				String as_user=req.getHeader(Config.CADI_USER_CHAIN);
+//				if(as_user!=null) {
+//					// return special Principal trusts, if any
+//				}
 				return new X509HttpTafResp(
 					access,
 					prin,

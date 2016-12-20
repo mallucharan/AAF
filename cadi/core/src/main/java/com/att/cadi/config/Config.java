@@ -101,6 +101,8 @@ public class Config {
 	public static final String WRITE_TO = "local_writeto"; // dump RBAC to local file in Tomcat Style (some apps use)
 	
 	public static final String AAF_ENV = "aaf_env";
+	public static final String AAF_ROOT_NS = "aaf_root_ns";
+	public static final String AAF_ROOT_COMPANY = "aaf_root_company";
 	public static final String AAF_URL = "aaf_url"; //URL for AAF... Use to trigger AAF configuration
 	public static final String AAF_MECHID = "aaf_id";
 	public static final String AAF_MECHPASS = "aaf_password";
@@ -164,9 +166,9 @@ public class Config {
 				if(is==null) {
 					File file = new File(str);
 					if(file.exists()) {
-						access.log(Level.INIT, "Loading Cadi Property File: \""+file.getAbsolutePath()+'"');
-//						access.log(Level.INIT, "Cadi Property File is of length",file.length());
 						try {
+//							access.log(Level.INIT, "Cadi Property File is of length",file.length());
+							access.log(Level.INIT, "Loading Cadi Property File: \""+file.getCanonicalPath()+'"');
 							FileInputStream fis = new FileInputStream(file);						
 							try {
 								access.load(fis);
@@ -178,10 +180,14 @@ public class Config {
 							throw new CadiException(e);
 						}
 					} else {
-						// Put in System Err too, because Logging may not be enabled quite yet
-						String msg = "Cadi Property File: \"" + file.getAbsolutePath() + "\" does not exist!";
-									 
-						access.log(Level.ERROR, msg);
+						try {
+							// Put in System Err too, because Logging may not be enabled quite yet
+							String msg = "Cadi Property File: \"" + file.getCanonicalPath() + "\" does not exist!";
+							access.log(Level.ERROR, msg);
+						} catch (IOException e) {
+							access.log(e);
+							throw new CadiException(e);
+						}
 					}
 				} else {
 					access.log(Level.INIT, "Cadi Property File \"",str,"\" loading from Classpath");
@@ -555,27 +561,14 @@ public class Config {
 
 		try {
 			if(aafURL!=null) {
-				if(aafURL.startsWith("https://DME2")) {
+
 					aafConClass = loadClass(access, "com.att.cadi.aaf.v2_0.AAFConDME2");
 					aafcon = aafConClass.getConstructor(Access.class).newInstance(access);
-				} else {
-					aafConClass = loadClass(access, getter.get(AAF_CONNECTOR_CLASS, "com.att.cadi.aaf.v2_0.AAFConHttp", true));
-					for(Constructor<?> c : aafConClass.getConstructors()) {
-						List<Object> lo = new ArrayList<Object>();
-						for(Class<?> pc : c.getParameterTypes()) {
-							if(pc.equals(Access.class)) {
-								lo.add(access);
-							} else if(pc.equals(Locator.class)) {
-								lo.add(loadLocator(access, aafURL));
-							} else {
-								continue;
-							}
-						}
-						aafcon = c.newInstance(lo.toArray());
-						break;
-					}
-				}
+				 
+
 				if(aafcon!=null) {
+					
+					System.out.println("In if aafcon!=null ;;;;;;;;;;;;;;;;;;" +aafcon);
 					String mechid = getter.get(Config.AAF_MECHID, null, true);
 					String pass = getter.get(Config.AAF_MECHPASS, null, false);
 					if(mechid!=null && pass!=null) {
@@ -592,6 +585,7 @@ public class Config {
 			access.log(e,"AAF Connector could not be constructed with given Constructors.");
 		}
 		
+		System.out.println("print the method return aafcon ;;;;;;;;;;;;;;;;;;" +aafcon);
 		return aafcon;
 	}
 
@@ -611,6 +605,7 @@ public class Config {
 
 	public static Locator loadLocator(Access access, String url) {
 		Locator locator = null;
+		System.out.println("print the url in loadLocator --------------------------------" +url);
 		if(url==null) {
 			access.log(Level.INIT,"No URL for AAF Login Page. Disabled");
 		} else {
@@ -635,6 +630,7 @@ public class Config {
 				}
 			}
 		}
+		System.out.println("print locator in loadlocator method------------------------" +locator);
 		return locator;
 	}
 

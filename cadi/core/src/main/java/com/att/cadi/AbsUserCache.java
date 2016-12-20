@@ -104,14 +104,19 @@ public abstract class AbsUserCache<PERM extends Permission> {
 	}
 
 	protected User<PERM> getUser(String userName) {
+		
+		System.out.println("In getUser() ----- 02 ----- method ++++++++++++++++++++++++++++++");
 		User<PERM> u = userMap.get(userName);
+
 		if(u!=null) {
+			System.out.println(" u!=null check block  ----04----+++++++++++++++++++++++++++++");
 			u.incCount();
 		}
 		return u;
 	}
 	
 	protected User<PERM> getUser(Principal principal) {
+	//	System.out.println("In getUser() ---- 01 ---- method Impl +++++++++++++++++++++++++++++++++++++++" +getUser(principal.getName()).toString());
 		return getUser(principal.getName()); 
 	}
 	

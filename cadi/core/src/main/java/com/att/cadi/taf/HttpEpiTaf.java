@@ -127,7 +127,7 @@ public class HttpEpiTaf implements HttpTaf {
 		}
 		// Current guess that only Browsers bother to set "Agent" codes that identify the kind of browser they are.
 		// If mechanical frameworks are found that populate this, then more advanced analysis may be required
-		// jg1555 1/22/2013
+		//  1/22/2013
 		String agent = req.getHeader("User-Agent");
 		if(agent!=null && agent.startsWith("Mozilla")) // covers I.E./Firefox/Safari/probably any other "advanced" Browser see http://en.wikipedia.org/wiki/User_agent
 			return LifeForm.CBLF;                      
