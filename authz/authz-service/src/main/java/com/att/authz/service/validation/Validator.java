@@ -25,22 +25,6 @@ import com.att.dao.aaf.cass.UserRoleDAO;
  *
  */
 public class Validator {
-	private static final PermPermission grandfatherPerm = new PermPermission("com.att.aaf","validator","swm_scamper","*");
-	// SCAMPER uses "isPrintableASCII(), then uses RegEx "[^~|,?*]
-	// * x2A	, x2C	? x3F	| x7C	 ~ x7E 
-	private static final String GRANDFATHERED="\\x20-\\x29\\x2B\\x2D-\\x3E\\x40-\\x7B\\x7D";
-	// AAF will allow "," "*" in certain positions
-	public static final Pattern GRANDFATHERED_ACTION_CHARS=Pattern.compile(
-			"["+GRANDFATHERED+"\\x2C]+" +	// All AlphaNumeric+
-			"|\\*"						// Just Star
-			);
-
-	public static final Pattern GRANDFATHERED_INST_CHARS=Pattern.compile(
-			"["+GRANDFATHERED+"]+[\\*]*" +					// All AlphaNumeric+
-			"|\\*" +									// Just Star
-			"|(([:/]\\*)|([:/]["+GRANDFATHERED+"]+[\\*]*))+"	// Key :asdf:*:sdf
-			);
-    
 	// % () ,-. 0-9 =A-Z _a-z
 	private static final String ESSENTIAL="\\x25\\x28\\x29\\x2C-\\x2E\\x30-\\x39\\x3D\\x40-\\x5A\\x5F\\x61-\\x7A";
 	private static final Pattern ESSENTIAL_CHARS=Pattern.compile("["+ESSENTIAL+"]+");
@@ -82,19 +66,15 @@ public class Validator {
 	/**
 	 * When Trans is passed in, check for non-standard Action/Inst chars
 	 * 
+	 * This is an opportunity to change characters, if required.
+	 * 
 	 * Use for any Object method passed (i.e. role(RoleDAO.Data d) ), to ensure fewer bugs.
 	 * 
 	 * @param trans
 	 */
 	public Validator(AuthzTrans trans) {
-		if(trans.fish(grandfatherPerm)) {
-			actionChars = GRANDFATHERED_ACTION_CHARS;
-			instChars = GRANDFATHERED_INST_CHARS;
-			trans.info().log(trans.user(), "is given grandfathered user");
-		} else {
-			actionChars = ACTION_CHARS;
-			instChars = INST_CHARS;
-		}
+		actionChars = ACTION_CHARS;
+		instChars = INST_CHARS;
 	}
 
 

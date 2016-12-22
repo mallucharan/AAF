@@ -184,7 +184,7 @@ public class AuthzEnv extends RosettaEnv implements Access {
 		if(encrypted==null) {
 			throw new IOException("Password to be decrypted is null");
 		}
-		if(anytext || encrypted.startsWith("enc:???")) {
+		if(anytext || encrypted.startsWith("enc:")) {
 			if(decryptor.equals(Decryptor.NULL) && getProperty(Config.CADI_KEYFILE)!=null) {
 				final Symm s = Symm.obtain(this);
 				decryptor = new Decryptor() {

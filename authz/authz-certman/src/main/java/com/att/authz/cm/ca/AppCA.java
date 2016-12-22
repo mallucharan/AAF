@@ -31,6 +31,7 @@ import org.jscep.transaction.TransactionException;
 import com.att.authz.cm.cert.BCFactory;
 import com.att.authz.cm.cert.CSRMeta;
 import com.att.authz.cm.cert.StandardFields;
+import com.att.authz.common.Define;
 import com.att.cadi.cm.CertException;
 import com.att.cadi.cm.Factory;
 import com.att.cadi.config.Config;
@@ -41,7 +42,7 @@ import com.att.inno.env.Trans;
 import com.att.inno.env.util.Split;
 
 public class AppCA extends CA {
-	public static final String CA_PERM_TYPE = "com.att.aaf.ca"; // Permission Type for validation
+	public static final String CA_PERM_TYPE = Define.ROOT_NS+".ca"; // Permission Type for validation
 	private static final String AAF_DATA_DIR = "aaf_data_dir";
 	private static final String CA_PREFIX = "http://";
 	private static final String CA_POSTFIX="/certsrv/mscep_admin/mscep.dll";

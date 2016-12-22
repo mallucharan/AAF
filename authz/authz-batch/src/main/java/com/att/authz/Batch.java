@@ -325,7 +325,7 @@ public abstract class Batch {
 	            File f = new File("etc/authBatch.props");
 	            try {
 	                if(f.exists()) {
-	                	filename = f.getAbsolutePath();
+	                	filename = f.getCanonicalPath();
 	                    is = new FileInputStream(f);
 	                    propLoc=f.getPath();
 	                } else {

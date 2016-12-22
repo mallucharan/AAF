@@ -20,7 +20,16 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 
 /**
+ * History
  * 
+ * 
+ * History is a special case, because we don't want Updates or Deletes...  Too likely to mess up history.
+ * 
+ * 9-9-2013 - Found a problem with using "Prepare".  You cannot prepare anything with a "now()" in it, as
+ * it is evaluated once during the prepare, and kept.  That renders any use of "now()" pointless.  Therefore
+ * the Create function needs to be run fresh everytime.
+ * 
+ * Fixed in Cassandra 1.2.6 https://issues.apache.org/jira/browse/CASSANDRA-5616
  *
  */
 public class HistoryDAO extends CassDAOImpl<AuthzTrans, HistoryDAO.Data> {

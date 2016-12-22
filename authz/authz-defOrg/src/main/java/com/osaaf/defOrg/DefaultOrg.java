@@ -1,5 +1,6 @@
 package com.osaaf.defOrg;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,6 +56,43 @@ public class DefaultOrg implements Organization {
 		session = Session.getDefaultInstance(System.getProperties());
 
 		SUFFIX='.'+getDomain();
+		
+		try {
+			String defFile;
+			temp=env.getProperty(defFile = (getClass().getName()+".file"));
+			File fIdentities=null;
+			if(temp==null) {
+				temp = env.getProperty("aaf_data_dir");
+				if(temp!=null) {
+					env.warn().log(defFile, "is not defined. Using default: ",temp+"/identities.dat");
+					File dir = new File(temp);
+					fIdentities=new File(dir,"identities.dat");
+					if(!fIdentities.exists()) {
+						env.warn().log("No",fIdentities.getCanonicalPath(),"exists.  Creating.");
+						if(!dir.exists()) {
+							dir.mkdirs();
+						}
+						fIdentities.createNewFile();
+					}
+				}
+			} else {
+				fIdentities = new File(temp);
+				if(!fIdentities.exists()) {
+					String dataDir = env.getProperty("aaf_data_dir");
+					if(dataDir!=null) {
+						fIdentities = new File(dataDir,temp);
+					}
+				}
+			}
+			
+			if(fIdentities!=null && fIdentities.exists()) {
+				identities = new Identities(fIdentities);
+			} else {
+				throw new OrganizationException(fIdentities.getCanonicalPath() + " does not exist.");
+			}
+		} catch (IOException e) {
+			throw new OrganizationException(e);
+		}
 	}
 	
 	// Implement your own Delegation System
@@ -382,8 +420,38 @@ public class DefaultOrg implements Organization {
 
 	@Override
 	public GregorianCalendar expiration(GregorianCalendar gc, Expiration exp, String... extra) {
-		// TODO Auto-generated method stub
-		return null;
+        GregorianCalendar rv = gc==null?new GregorianCalendar():(GregorianCalendar)gc.clone();
+		switch (exp) {
+			case ExtendPassword:
+				// Extending Password give 5 extra days
+				rv.add(GregorianCalendar.DATE, 5);
+				break;
+			case Future:
+				// Future Requests last 15 days before subject to deletion.
+				rv.add(GregorianCalendar.DATE, 15);
+				break;
+			case Password:
+				// Passwords expire in 90 days
+				rv.add(GregorianCalendar.DATE, 90);
+				break;
+			case TempPassword:
+				// Temporary Passwords last for 12 hours.
+				rv.add(GregorianCalendar.HOUR, 12);
+				break;
+			case UserDelegate:
+				// Delegations expire max in 2 months
+				rv.add(GregorianCalendar.MONTH, 2);
+				break;
+			case UserInRole:
+				// Roles expire in 6 months
+				rv.add(GregorianCalendar.MONTH, 6);
+				break;
+			default:
+				// Unless other wise set, 6 months is default
+				rv.add(GregorianCalendar.MONTH, 6);
+				break;
+		}
+		return rv;
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.layer.Result;
 import com.att.authz.org.Executor;
@@ -283,7 +284,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 			}
 			
 			// Check if User may put
-			if(!ques.isGranted(trans, trans.user(), Question.COM_ATT_AAF, Question.ATTRIB, 
+			if(!ques.isGranted(trans, trans.user(), Define.ROOT_NS, Question.ATTRIB, 
 					":"+trans.org().getDomain()+".*:"+key, Access.write.name())) {
 				return Result.err(Status.ERR_Denied, "%s may not create NS Attrib [%s:%s]", trans.user(),ns, key);
 			}
@@ -316,7 +317,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 		}
 
 		// May Read
-		if(!ques.isGranted(trans, trans.user(), Question.COM_ATT_AAF, Question.ATTRIB, 
+		if(!ques.isGranted(trans, trans.user(), Define.ROOT_NS, Question.ATTRIB, 
 					":"+trans.org().getDomain()+".*:"+key, Question.READ)) {
 			return Result.err(Status.ERR_Denied,"%s may not read NS by Attrib '%s'",trans.user(),key);
 		}
@@ -366,7 +367,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 			}
 			
 			// Check if User may put
-			if(!ques.isGranted(trans, trans.user(), Question.COM_ATT_AAF, Question.ATTRIB, 
+			if(!ques.isGranted(trans, trans.user(), Define.ROOT_NS, Question.ATTRIB, 
 					":"+trans.org().getDomain()+".*:"+key, Access.write.name())) {
 				return Result.err(Status.ERR_Denied, "%s may not create NS Attrib [%s:%s]", trans.user(),ns, key);
 			}
@@ -417,7 +418,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 			}
 			
 			// Check if User may del
-			if(!ques.isGranted(trans, trans.user(), "com.att.aaf", "attrib", ":com.att.*:"+key, Access.write.name())) {
+			if(!ques.isGranted(trans, trans.user(), Define.ROOT_NS, "attrib", ":com.att.*:"+key, Access.write.name())) {
 				return Result.err(Status.ERR_Denied, "%s may not delete NS Attrib [%s:%s]", trans.user(),ns, key);
 			}
 
@@ -1405,8 +1406,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 
                 "Roles are part of Namespaces",
                 "Examples:",
-                "<ul><li>com.att.aaf - The team that created and maintains AAF</li>",
-                "<li>com.att.csp - The team that created Global Login</li></ul>",
+                "<ul><li> org.osaaf - A Possible root Namespace for maintaining AAF</li>",
                 "Roles do not include implied permissions for an App.  Instead, they contain explicit Granted Permissions by any Namespace in AAF (See Permissions)",
                 "Restrictions on Role Names:",
                 "<ul><li>Must start with valid Namespace name, terminated by . (dot/period)</li>",
@@ -2130,7 +2130,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 				String user[] = Split.split('.',trans.user());
 				if(user.length>2) {
 					String company = user[user.length-1] + '.' + user[user.length-2];
-					if(ques.isGranted(trans, trans.user(), Question.COM_ATT_AAF,"password",company,"reset")) {
+					if(ques.isGranted(trans, trans.user(), Define.ROOT_NS,"password",company,"reset")) {
 						return Result.ok();
 					}
 				}
@@ -3916,11 +3916,11 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 	 */
 	@Override
 	public Result<Void> cacheClear(AuthzTrans trans, String cname) {
-		if(ques.isGranted(trans,trans.user(),Question.COM_ATT_AAF,CACHE,cname,"clear")) {
+		if(ques.isGranted(trans,trans.user(),Define.ROOT_NS,CACHE,cname,"clear")) {
 			return ques.clearCache(trans,cname);
 		}
-		return Result.err(Status.ERR_Denied, "%s does not have AAF Permission 'com.att.aaf.cache|%s|clear",
-				trans.user(),cname);
+		return Result.err(Status.ERR_Denied, "%s does not have AAF Permission '%s.cache|%s|clear",
+				trans.user(),Define.ROOT_NS,cname);
 	}
 
 	/* (non-Javadoc)
@@ -3928,7 +3928,7 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 	 */
 	@Override
 	public Result<Void> cacheClear(AuthzTrans trans, String cname, int[] segment) {
-		if(ques.isGranted(trans,trans.user(),Question.COM_ATT_AAF,CACHE,cname,"clear")) {
+		if(ques.isGranted(trans,trans.user(),Define.ROOT_NS,CACHE,cname,"clear")) {
 			Result<Void> v=null;
 			for(int i: segment) {
 				v=ques.cacheClear(trans,cname,i);
@@ -3937,7 +3937,8 @@ public class AuthzCassServiceImpl	<NSS,PERMS,PERMKEY,ROLES,USERS,USERROLES,DELGS
 				return v;
 			}
 		}
-		return Result.err(Status.ERR_Denied, "%s does not have AAF Permission 'com.att.aaf.cache|%s|clear",trans.user(),cname);
+		return Result.err(Status.ERR_Denied, "%s does not have AAF Permission '%s.cache|%s|clear",
+				trans.user(),Define.ROOT_NS,cname);
 	}
 
 	/* (non-Javadoc)

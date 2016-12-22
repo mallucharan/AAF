@@ -40,6 +40,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import com.att.authz.cm.cert.BCFactory;
 import com.att.authz.cm.cert.CSRMeta;
 import com.att.authz.cm.cert.StandardFields;
+import com.att.authz.common.Define;
 import com.att.cadi.cm.CertException;
 import com.att.cadi.cm.Factory;
 import com.att.inno.env.Env;
@@ -69,7 +70,7 @@ public class DevlCA extends CA {
 				csr.st("Missouri");
 				csr.c("US");
 			}
-		}, "com.att.aaf.ca" // Permission Type for validation
+		}, Define.ROOT_NS+".ca" // Permission Type for validation
 		);
 		File dir = new File(dirString);
 		if(!dir.exists()) {

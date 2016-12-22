@@ -380,7 +380,7 @@ public interface Organization {
 		@Override
 		public GregorianCalendar expiration(GregorianCalendar gc,
 				Expiration exp, String... extra) {
-			return gc;
+			return gc==null?new GregorianCalendar():gc;
 		}
 	
 		@Override

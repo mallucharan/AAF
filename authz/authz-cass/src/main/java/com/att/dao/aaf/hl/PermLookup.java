@@ -126,6 +126,8 @@ class PermLookup {
 	
 	public Result<List<PermDAO.Data>> getPerms(boolean lookup) {
 		if(perms==null) {
+			// Note: It should be ok for a Valid user to have no permissions -
+			// 8/12/2013
 			Result<Set<String>> rss = getPermNames();
 			if(rss.isOK()) {
 				List<PermDAO.Data> lpdd = new ArrayList<PermDAO.Data>();

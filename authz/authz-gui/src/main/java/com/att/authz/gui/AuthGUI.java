@@ -22,6 +22,7 @@ import com.att.aft.dme2.api.DME2ServiceHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.util.DME2ServletHolder;
+import com.att.authz.common.Define;
 import com.att.authz.cui.CUI;
 import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
@@ -231,7 +232,7 @@ public class AuthGUI extends AbsServer implements State<Env>{
 	        // Secure all GUI interactions with AuthzTransFilter
 	        flist.add(new DME2FilterHolder(new AuthzTransFilter(env, aafCon, new AAFTrustChecker(
 	        		env.getProperty(Config.CADI_TRUST_PROP, Config.CADI_USER_CHAIN),
-	        		"com.att.aaf.mechid|com.att|trust"
+	        		Define.ROOT_NS + ".mechid|"+Define.ROOT_COMPANY+"|trust"
 	        	)),"/gui/*", edlist));
 	        
 	        // Don't need security for display Artifacts or login page

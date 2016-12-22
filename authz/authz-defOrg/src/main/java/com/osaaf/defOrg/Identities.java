@@ -33,6 +33,8 @@ import com.att.authz.local.DataFile.Token.Field;
  *       
  */
 public class Identities extends AbsData {
+	public final static Data NO_DATA = new Data();
+	
 	public Identities(File users) {
 		super(users,'|',512,0);
 	}
@@ -49,7 +51,7 @@ public class Identities extends AbsData {
 	 * 6 - employment status e=employee, c=contractor, a=application, n=no longer with company
 	 * 7 - responsible to (i.e Supervisor for People, or AppOwner, if it's an App ID)
 	 */
-	public class Data {
+	public static class Data {
 		public final String id;
 		public final String name;
 		public final String fname;
@@ -71,6 +73,12 @@ public class Identities extends AbsData {
 			responsibleTo =f.next();
 		}
 		
+		private Data() {
+			id = name = fname = lname =
+			phone = email = status = responsibleTo 
+			= "";
+		}
+
 		public String toString() {
 			return  id + '|' +
 					name + '|' +
@@ -110,5 +118,5 @@ public class Identities extends AbsData {
         }
         r.getTokenData().pos(rec);
         return new Data(r.getFieldData());
-}
+    }
 }

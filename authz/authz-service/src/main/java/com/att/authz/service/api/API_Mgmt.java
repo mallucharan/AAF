@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.att.aft.dme2.internal.jetty.http.HttpStatus;
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.facade.AuthzFacade;
 import com.att.authz.layer.Result;
@@ -86,7 +87,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				try {
-					if(req.isUserInRole("com.att.aaf.db|pool|clear")) {
+					if(req.isUserInRole(Define.ROOT_NS+".db|pool|clear")) {
 						SessionFilter.clear();
 						context.dbReset(trans);
 
@@ -111,7 +112,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String ip = pathParam(req,":ip");
-				if(req.isUserInRole("com.att.aaf.deny|com.att|ip")) {
+				if(req.isUserInRole(Define.ROOT_NS+".deny|"+Define.ROOT_COMPANY+"|ip")) {
 					if(DenialOfServiceTaf.denyIP(ip)) {
 						trans.audit().log(ip+" has been set to deny by "+trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);
@@ -136,7 +137,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String ip = pathParam(req,":ip");
-				if(req.isUserInRole("com.att.aaf.deny|com.att|ip")) {
+				if(req.isUserInRole(Define.ROOT_NS+".deny|"+Define.ROOT_COMPANY+"|ip")) {
 					if(DenialOfServiceTaf.removeDenyIP(ip)) {
 						trans.audit().log(ip+" has been removed from denial by "+trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);
@@ -160,7 +161,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String id = pathParam(req,":id");
-				if(req.isUserInRole("com.att.aaf.deny|com.att|id")) {
+				if(req.isUserInRole(Define.ROOT_NS+".deny|"+Define.ROOT_COMPANY+"|id")) {
 					if(DenialOfServiceTaf.denyID(id)) {
 						trans.audit().log(id+" has been set to deny by "+trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);
@@ -184,7 +185,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String id = pathParam(req,":id");
-				if(req.isUserInRole("com.att.aaf.deny|com.att|id")) {
+				if(req.isUserInRole(Define.ROOT_NS+".deny|"+Define.ROOT_COMPANY+"|id")) {
 					if(DenialOfServiceTaf.removeDenyID(id)) {
 						trans.audit().log(id+" has been removed from denial by " + trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);
@@ -208,7 +209,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String id = pathParam(req,":id");
-				if(req.isUserInRole("com.att.aaf.log|com.att|id")) {
+				if(req.isUserInRole(Define.ROOT_NS+".log|"+Define.ROOT_COMPANY+"|id")) {
 					if(Question.specialLogOn(trans,id)) {
 						trans.audit().log(id+" has been set to special Log by "+trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);
@@ -232,7 +233,7 @@ public class API_Mgmt {
 			@Override
 			public void handle(AuthzTrans trans, HttpServletRequest req, HttpServletResponse resp) throws Exception {
 				String id = pathParam(req,":id");
-				if(req.isUserInRole("com.att.aaf.log|com.att|id")) {
+				if(req.isUserInRole(Define.ROOT_NS+".log|"+Define.ROOT_COMPANY+"|id")) {
 					if(Question.specialLogOff(trans,id)) {
 						trans.audit().log(id+" has been removed from special Logging by " + trans.user());
 						trans.checkpoint(SUCCESS,Trans.ALWAYS);

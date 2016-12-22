@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.env.AuthzTransFilter;
 import com.att.authz.layer.Result;
@@ -87,7 +88,6 @@ public class Question {
 	public static final String NS = Type.ns.name();
 	public static final String CRED = Type.cred.name();
 	private static final String DELG = "delg";
-	public static final String COM_ATT_AAF = "com.att.aaf";
 	public static final String ATTRIB = "attrib";
 
 
@@ -283,6 +283,8 @@ public class Question {
 			}
 		}
 
+		// Note: It should be ok for a Valid user to have no permissions -
+		// 8/12/2013
 		List<PermDAO.Data> perms = new ArrayList<PermDAO.Data>();
 		for (String perm : permNames) {
 			Result<PermDAO.Data> pr = PermDAO.Data.decode(trans, this, perm);
@@ -356,13 +358,22 @@ public class Question {
 	public Result<NsDAO.Data> deriveFirstNsForType(AuthzTrans trans, String str, NsType type) {
 		NsDAO.Data nsd;
 
+		System.out.println("value of str before for loop ---------0---++++++++++++++++++" +str);
 		for(int idx = str.indexOf('.');idx>=0;idx=str.indexOf('.',idx+1)) {
+		//	System.out.println("printing value of str-----------------1------------++++++++++++++++++++++" +str);
 			Result<List<Data>> rld = nsDAO.read(trans, str.substring(0,idx));
+			System.out.println("value of idx is -----------------++++++++++++++++++++++++++" +idx);
+			System.out.println("printing value of str.substring-----------------1------------++++++++++++++++++++++" + (str.substring(0,idx)));
+			System.out.println("value of ResultListData ------------------2------------+++++++++++++++++++++++++++" +rld);
 			if(rld.isOKhasData()) {
+				System.out.println("In if loop -----------------3-------------- ++++++++++++++++");
+				System.out.println("value of nsd=rld.value.get(0).type -----------4------++++++++++++++++++++++++++++++++++++" +(nsd=rld.value.get(0)).type);
+				System.out.println("value of rld.value.get(0).name.toString()+++++++++++++++++++++++++++++++ " +rld.value.get(0).name);
 				if(type.type == (nsd=rld.value.get(0)).type) {
 					return Result.ok(nsd);
 				}
 			} else {
+				System.out.println("In else loop ----------------4------------+++++++++++++++++++++++");
 				return Result.err(Status.ERR_NsNotFound,"There is no valid Company Namespace for %s",str.substring(0,idx));
 			}
 		}
@@ -387,7 +398,7 @@ public class Question {
 	/**
 	 * Translate an ID into it's domain
 	 * 
-	 * i.e. myid1234@aaf.att.com results in domain of com.att.aaf
+	 * i.e. myid1234@myapp.att.com results in domain of com.att.myapp
 	 * 
 	 * @param id
 	 * @return
@@ -418,7 +429,7 @@ public class Question {
 	 * 
 	 * Namespace is reverse order of Domain.
 	 * 
-	 * i.e. myid1234@aaf.att.com results in domain of com.att.aaf
+	 * i.e. myid1234@myapp.att.com results in domain of com.att.myapp
 	 * 
 	 * @param trans
 	 * @param id
@@ -456,7 +467,7 @@ public class Question {
 				ns = ns.substring(0, last);
 			}
 		} while (last >= 0);
-		// com.att.aaf.ns|:<client ns>:ns|<access>
+		// <root ns>.ns|:<client ns>:ns|<access>
 		// AAF-724 - Make consistent response for May User", and not take the
 		// last check... too confusing.
 		Result<NsDAO.Data> rv = mayUserVirtueOfNS(trans, user, ndd, ":"	+ ndd.name + ":ns", access.name());
@@ -499,7 +510,7 @@ public class Question {
 		} while (last >= 0);
 
 		// Check if Access by Global Role perm
-		// com.att.aaf.ns|:<client ns>:role:name|<access>
+		// <root ns>.ns|:<client ns>:role:name|<access>
 		Result<NsDAO.Data> rnsd = mayUserVirtueOfNS(trans, user, ndd, ":"
 				+ rdd.ns + roleInst, access.name());
 		if (rnsd.isOK()) {
@@ -550,7 +561,7 @@ public class Question {
 		} while (last >= 0);
 
 		// Check if Access by NS perm
-		// com.att.aaf.ns|:<client ns>:role:name|<access>
+		// <root ns>.ns|:<client ns>:role:name|<access>
 		Result<NsDAO.Data> rnsd = mayUserVirtueOfNS(trans, user, ndd, ":" + pdd.ns + permInst, access.name());
 		if (rnsd.isOK()) {
 			return rnsd;
@@ -595,7 +606,7 @@ public class Question {
 					return Result.err(Status.ERR_BadData,
 							"[%s] cannot be a delegate for self", dd.user);
 				}
-				if (!isUser	&& !isGranted(trans, trans.user(), COM_ATT_AAF,DELG,
+				if (!isUser	&& !isGranted(trans, trans.user(), Define.ROOT_NS,DELG,
 								org.getDomain(), Question.CREATE)) {
 					return Result.err(Status.ERR_Denied,
 							"[%s] may not create a delegate for [%s]",
@@ -605,7 +616,7 @@ public class Question {
 			case read:
 			case write:
 				if (!isUser	&& !isDelegate && 
-						!isGranted(trans, trans.user(), COM_ATT_AAF,DELG,org.getDomain(), access.name())) {
+						!isGranted(trans, trans.user(), Define.ROOT_NS,DELG,org.getDomain(), access.name())) {
 					return Result.err(Status.ERR_Denied,
 							"[%s] may not %s delegates for [%s]", trans.user(),
 							access.name(), dd.user);
@@ -636,7 +647,7 @@ public class Question {
 		}
 		
 		// If Specially granted Global Permission
-		if (isGranted(trans, user, COM_ATT_AAF,NS, ns_and_type, access)) {
+		if (isGranted(trans, user, Define.ROOT_NS,NS, ns_and_type, access)) {
 			return Result.ok(nsd);
 		}
 

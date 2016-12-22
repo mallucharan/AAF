@@ -18,7 +18,7 @@ import com.att.authz.layer.Result;
  */
 public class Status<RV> extends Result<RV> {
 	
-	// 
+	// 10/1/2013:  Initially, I used enum, but it's not extensible.
     public final static int ERR_NsNotFound = Result.ERR_General+1,
     						ERR_RoleNotFound = Result.ERR_General+2,
     						ERR_PermissionNotFound = Result.ERR_General+3, 

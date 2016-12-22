@@ -39,9 +39,12 @@ public class DirectAAFUserPass implements CredVal {
 				case OK:
 					return true;
 				default:
+					
 					env.warn().log(user, "failed Password Validation:",result.errorString());
 			}
 		} catch (DAOException e) {
+			System.out.println(" exception in DirectAAFUserPass class ");
+			e.printStackTrace();
 			env.error().log(e,"Cannot validate User/Pass from Cassandra");
 		}
 		return false;

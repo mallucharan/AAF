@@ -20,6 +20,7 @@ import com.osaaf.defOrg.Identities.Data;
  */
 public class DefaultOrgIdentity implements Identity {
     private final static int TIMEOUT = Integer.parseInt(Config.AAF_CONN_TIMEOUT_DEF);
+	
 	private DefaultOrg org;
 	private Data identity;
 	private Identity owner;
@@ -32,7 +33,9 @@ public class DefaultOrgIdentity implements Identity {
 			try {
 				Reuse r = org.identities.reuse();
 				identity = org.identities.find(key, r);
-				if(identity!=null) {
+				if(identity==null) {
+					identity = Identities.NO_DATA;
+				} else {
 					if("a".equals(identity.status)) {
 						owner = new DefaultOrgIdentity(trans,identity.responsibleTo,org);
 					} else {

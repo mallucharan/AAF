@@ -23,8 +23,8 @@ public class JU_DelegateDAO  extends AbsJUCass {
 	public void testCRUD() throws Exception {
 		DelegateDAO dao = new DelegateDAO(trans, cluster, AUTHZ);
 		DelegateDAO.Data data = new DelegateDAO.Data();
-		data.user = "test";
-		data.delegate = "test1";
+		data.user = "myname";
+		data.delegate = "yourname";
 		data.expires = new Date();
 		
 //        Bytification
@@ -52,7 +52,7 @@ public class JU_DelegateDAO  extends AbsJUCass {
 				compare(data,rdata);
 			
 			// Update
-			data.delegate = "pf2819";
+			data.delegate = "hisname";
 			data.expires = new Date();
 			assertTrue(dao.update(trans, data).isOK());
 

@@ -177,7 +177,7 @@ public class JU_Bytification {
 	@Test
 	public void testUserRole() throws IOException {
 		UserRoleDAO.Data urd1 = new UserRoleDAO.Data();
-		urd1.user = "test@abc.att.com";
+		urd1.user = "myname@abc.att.com";
 		urd1.role("com.att.<pass>","my.role");
 		urd1.expires = new Date();
 

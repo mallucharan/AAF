@@ -98,7 +98,7 @@ public abstract class AbsData implements Iterable<String> {
 	
 	private synchronized void ensureIdxGood(AuthzTrans trans) throws IOException {
 		if(!idxf.exists() || idxf.length()==0 || dataf.lastModified()>idxf.lastModified()) {
-			trans.warn().log(idxf.getAbsolutePath(),"is missing, empty or out of date, creating");
+			trans.warn().log(idxf.getCanonicalPath(),"is missing, empty or out of date, creating");
 			RandomAccessFile raf = new RandomAccessFile(lockf, "rw");
 			try {
 				ti.create(trans, data, maxLineSize, delim, fieldOffset, skipLines);

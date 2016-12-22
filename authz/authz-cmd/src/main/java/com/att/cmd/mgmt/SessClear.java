@@ -3,6 +3,7 @@
  *******************************************************************************/
 package com.att.cmd.mgmt;
 
+import com.att.authz.common.Define;
 import com.att.cadi.CadiException;
 import com.att.cadi.LocatorException;
 import com.att.cadi.client.Future;
@@ -55,7 +56,7 @@ public class SessClear extends Cmd {
 		detailLine(sb,indent,"Clear the cache for certain tables");
 		indent+=2;
 		detailLine(sb,indent,"name        - name of table or 'all'");
-		detailLine(sb,indent+14,"Must have admin rights to 'com.att.aaf'");
+		detailLine(sb,indent+14,"Must have admin rights to '" + Define.ROOT_NS + '\'');
 		indent-=2;
 		api(sb,indent,HttpMethods.DELETE,"mgmt/cache/:name",Void.class,true);
 	}

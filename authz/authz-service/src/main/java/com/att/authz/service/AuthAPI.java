@@ -22,6 +22,7 @@ import com.att.aft.dme2.api.util.DME2ServletHolder;
 import com.att.authz.cadi.DirectAAFLur;
 import com.att.authz.cadi.DirectAAFUserPass;
 import com.att.authz.cadi.DirectCertIdentity;
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.env.AuthzTransFilter;
@@ -226,7 +227,7 @@ public class AuthAPI extends AbsServer {
 		        	new AuthzTransFilter(env, null /* no connection to AAF... it is AAF */,
 		        		new AAFTrustChecker(
 		        				env.getProperty(Config.CADI_TRUST_PROP, Config.CADI_USER_CHAIN),
-		        				"com.att.aaf.mechid|com.att|trust"),
+		        				Define.ROOT_NS + ".mechid|"+Define.ROOT_COMPANY+"|trust"),
 		        	        	new DirectAAFLur(env,question), // Note, this will be assigned by AuthzTransFilter to TrustChecker
 			        	new BasicHttpTaf(env, directAAFUserPass,
 			        			DOMAIN,Long.parseLong(env.getProperty(Config.AAF_CLEAN_INTERVAL, Config.AAF_CLEAN_INTERVAL_DEF)),

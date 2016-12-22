@@ -14,6 +14,7 @@ import java.util.Properties;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
 import com.att.cadi.CadiException;
@@ -86,6 +87,9 @@ public abstract class AbsServer extends RServlet<AuthzTrans> {
 				}
 				env.debug().log(sb);
 			}
+
+			// Set ROOT NS, etc
+			Define.set(env);
 
 			// Convert CADI properties and Encrypted Passwords for these two properties (if exist) 
 			// to DME2 Readable.  Further, Discovery Props are loaded to System if missing.

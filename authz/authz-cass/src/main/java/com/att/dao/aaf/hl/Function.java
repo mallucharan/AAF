@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.att.authz.common.Define;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.layer.Result;
 import com.att.authz.org.Executor;
@@ -136,7 +137,7 @@ public class Function {
 		int idx = namespace.name.lastIndexOf('.');
 		String parent;
 		if (idx < 0) {
-			if (!q.isGranted(trans, user, Question.COM_ATT_AAF,Question.NS, ".", "create")) {
+			if (!q.isGranted(trans, user, Define.ROOT_NS,Question.NS, ".", "create")) {
 				return Result.err(Result.ERR_Security,
 						"%s may not create Root Namespaces", user);
 			}
@@ -438,7 +439,7 @@ public class Function {
 		int idx = ns.lastIndexOf('.');
 		NsDAO.Data parent;
 		if (idx < 0) {
-			if (!q.isGranted(trans, user, Question.COM_ATT_AAF,Question.NS, ".", "delete")) {
+			if (!q.isGranted(trans, user, Define.ROOT_NS,Question.NS, ".", "delete")) {
 				return Result.err(Result.ERR_Security,
 						"%s may not delete Root Namespaces", user);
 			}
@@ -1055,8 +1056,8 @@ public class Function {
 			if (ucp.notOK()) {
 				// Don't allow CLI potential Grantees to change their own AAF
 				// Perms,
-				if ((Question.COM_ATT_AAF.equals(pd.ns) && Question.NS.equals(pd.type)) 
-						|| !q.isGranted(trans, trans.user(),Question.COM_ATT_AAF,Question.PERM, rPermCo.value.name, "grant")) {
+				if ((Define.ROOT_NS.equals(pd.ns) && Question.NS.equals(pd.type)) 
+						|| !q.isGranted(trans, trans.user(),Define.ROOT_NS,Question.PERM, rPermCo.value.name, "grant")) {
 				// Not otherwise granted
 				// TODO Needed?
 					return Result.err(ucp);
