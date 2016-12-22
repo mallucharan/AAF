@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
-//jg1555@codecloud.web.att.com/scm/st_aaf/osaaf.git
+//
 import com.att.aft.dme2.api.DME2Exception;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;

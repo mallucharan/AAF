@@ -31,7 +31,7 @@ public class GreatCircle {
 	 * 
 	 * Essential formula from a Princeton website, the "Law of Cosines" method.  
 	 * 
-	 * Refactored cleaned up for speed jg1555 3/8/2013
+	 * Refactored cleaned up for speed  3/8/2013
 	 * 
 	 * @param latA
 	 * @param lonA

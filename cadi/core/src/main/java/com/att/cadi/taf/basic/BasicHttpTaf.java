@@ -91,6 +91,9 @@ public class BasicHttpTaf implements HttpTaf {
 
 				// ONLY FOR Last Ditch DEBUGGING... 
 				// access.log(Level.WARN,ba.getName() + ":" + new String(ba.getCred()));
+				System.out.println("value of rbac ---------1------------------++++++++++++++++++++++++++++++++++++++++++++++" +rbac.getClass().getName());
+				System.out.println("value of ba.getName() -------------2-----------------++++++++++++++++++++++++++++++++++++++++++++++" +ba.getName() + " " + ba.getCred());
+				
 				if(rbac.validate(ba.getName(), Type.PASSWORD, ba.getCred())) {
 					return new BasicHttpTafResp(access,ba, ba.getName()+" authenticated by BasicAuth password",RESP.IS_AUTHENTICATED,resp,realm,false);
 				} else {
