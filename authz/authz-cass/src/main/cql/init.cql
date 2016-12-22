@@ -1,36 +1,8 @@
 // For Developer Machine single instance
 //
-// CREATE KEYSPACE authz
-//  WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor':1};
-// 
-// From Ravi, 6-17-2014.  User for DEVL->TEST
-//
-// CREATE KEYSPACE authz WITH replication = { 'class': 'NetworkTopologyStrategy', 'HYWRCA02': '2', 'BRHMALDC': '2' };
-// 
-// PROD
-// 
-// CREATE KEYSPACE authz WITH replication = {'class': 'NetworkTopologyStrategy','ALPSGACT': '2','STLSMORC': '2','BRHMALDC': '2' };
-//
-//  create user authz with password '<AUTHZ PASSWORD>' superuser;
-//  grant all on keyspace authz to authz;
-//
-// For TEST (aaf_test)
-// CREATE KEYSPACE authz WITH replication = { 'class': 'NetworkTopologyStrategy', 'BRHMALDC': '1' };
-//
-// DEVL
-// CREATE KEYSPACE authz WITH replication = {'class': 'NetworkTopologyStrategy','STLSMORC': '2' };
-//
-// TEST / PERF
-// CREATE KEYSPACE authz WITH replication = {'class': 'NetworkTopologyStrategy','STLSMORC': '3','KGMTNC20': '3' };
-//
-// IST
-// CREATE KEYSPACE authz WITH replication = {'class': 'NetworkTopologyStrategy','STLSMORC':'3',
-// 'DLLSTXCF':'3','KGMTNC20':'3','SFLDMIBB':'3','HYWRCA02':'3' };
-//
-// with 6 localized with ccm
-// CREATE KEYSPACE authz WITH replication = { 'class': 'NetworkTopologyStrategy', 'dc1': '2', 'dc2': '2' };
-// 
-
+ CREATE KEYSPACE authz
+ WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor':1};
+ 
 USE authz;
 
 //
@@ -52,11 +24,6 @@ CREATE TABLE ns (
 CREATE INDEX ns_parent on ns(parent);
   
 
-// Oct 2015, not performant.  Made Owner and Attrib first class Roles, jg1555
-// April, 2015.  Originally, the plan was to utilize Cassandra 2.1.2, however, other team's preferences were to remain at current levels.
-// Therefore, we are taking the separate table approach.  (coder Jeremiah Rohwedder)
-// We had dropped this by making first class objects of Responsible (Owner) and Admin.  We need this again to mark namespaces
-// as having certain tools, like SWM, etc.
 CREATE TABLE ns_attrib (
   ns            varchar,
   key           varchar,
