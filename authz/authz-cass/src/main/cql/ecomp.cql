@@ -1,3 +1,6 @@
+//
+//  Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+// 
 USE authz;
 
 // Create Root pass
