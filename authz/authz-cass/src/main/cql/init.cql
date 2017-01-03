@@ -1,3 +1,6 @@
+//
+//  Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
+//
 // For Developer Machine single instance
 //
  CREATE KEYSPACE authz
