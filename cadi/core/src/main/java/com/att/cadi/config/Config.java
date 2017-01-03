@@ -155,7 +155,8 @@ public class Config {
 	private static String defaultRealm="none";
 
 	public static final String AAF_DOMAIN_SUPPORT = "aaf_domain_support";
-	public static final String AAF_DOMAIN_SUPPORT_DEF = ".com";
+	//public static final String AAF_DOMAIN_SUPPORT_DEF = ".com";
+	public static final String AAF_DOMAIN_SUPPORT_DEF = ".org";
 
 
 	public static void configPropFiles(Get getter, Access access) throws CadiException {
