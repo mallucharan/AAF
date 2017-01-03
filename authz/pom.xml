@@ -225,7 +225,7 @@
 			</configuration>
 		</plugin>
 			
-	<!--		<plugin>
+		<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>cobertura-maven-plugin</artifactId>
 				<version>2.7</version>
@@ -235,7 +235,7 @@
 					<format>xml</format>
 				  </formats>
 				</configuration>
-			</plugin> -->
+			</plugin>
 			
 		<!-- blackduck maven plugin -->
 <plugin>
