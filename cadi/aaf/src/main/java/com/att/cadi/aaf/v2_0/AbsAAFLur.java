@@ -122,13 +122,13 @@ public abstract class AbsAAFLur<PERM extends Permission> extends AbsUserCache<PE
 			aaf.access.log(Level.INFO, sb);
 			return rv;
 		} else {
-			if(supports(bait)) {
-				User<PERM> user = getUser(bait);
-				if(user==null || (user.noPerms() && user.permExpired())) {
-					user = loadUser(bait);
-				}
-				return user==null?false:user.contains(pond);
-			}
+		//	if(supports(bait)) {
+		//		User<PERM> user = getUser(bait);
+		//		if(user==null || (user.noPerms() && user.permExpired())) {
+		//			user = loadUser(bait);
+		//		}
+		//		return user==null?false:user.contains(pond);
+		//	}
 			return false;
 		}
 	}
