@@ -64,7 +64,7 @@ import com.datastax.driver.core.Cluster;
 public class AuthAPI extends AbsServer {
 
 	private static final String ORGANIZATION = "Organization.";
-	private static final String DOMAIN = "aaf.att.com";
+	private static final String DOMAIN = "openecomp.org";
 
 // TODO Add Service Metrics
 //	private Metric serviceMetric;
