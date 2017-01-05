@@ -94,7 +94,8 @@ public class AAFTaf<CLIENT> extends AbsUserCache<AAFPermission> implements HttpT
 				
 				//System.out.println("value of userAAF ------8---- +++++++++++++++++++++++" +userAAF);
 				//System.out.println("value of userAAF +++++++++++++++++++++++" +userAAF.);
-				Future<String> fp = userAAF.read("/authn/basicAuth", "text/plain");
+				//Future<String> fp = userAAF.read("/authn/basicAuth", "text/plain");
+				Future<String> fp = userAAF.read("/authn/basicAuth", "text/plain","Authorization",auth); 
 				
 				//System.out.println("value of fp --------9------ +++++++++++++++++++++++" +fp.toString());
 				
