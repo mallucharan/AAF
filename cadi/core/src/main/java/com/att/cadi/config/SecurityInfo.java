@@ -6,8 +6,13 @@ package com.att.cadi.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.rmi.AccessException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 import javax.net.ssl.HostnameVerifier;
@@ -23,21 +28,26 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import com.att.cadi.Access;
-import com.att.cadi.SecuritySetter;
+import com.att.cadi.Access.Level;
+import com.att.cadi.util.MaskFormatException;
+import com.att.cadi.util.NetMask;
 
-
-public class SecurityInfo<CLIENT> {
-	
+public class SecurityInfo {
+	private static final String SECURITY_ALGO = "RSA";
 	private static final String HTTPS_PROTOCOLS = "https.protocols";
-	private static final String REGEX_COMMA = "\\s,\\s";
-	private static final String SslKeyManagerFactoryAlgorithm;
+	private static final String JDK_TLS_CLIENT_PROTOCOLS = "jdk.tls.client.protocols";
+
+	public static final String HTTPS_PROTOCOLS_DEFAULT = "TLSv1.1,TLSv1.2";
+	public static final String REGEX_COMMA = "\\s*,\\s*";
+	public static final String SslKeyManagerFactoryAlgorithm;
 	
 	private SSLSocketFactory scf;
 	private X509KeyManager[] km;
-	private TrustManager[] tm;
-	private HostnameVerifier trustAll;
+	private X509TrustManager[] tm;
 	public final String default_alias;
-	public SecuritySetter<CLIENT> defSS;
+	private NetMask[] trustMasks;
+	private SSLContext ctx;
+	private HostnameVerifier maskHV;
 
 	// Change Key Algorithms for IBM's VM.  Could put in others, if needed.
 	static {
@@ -63,27 +73,37 @@ public class SecurityInfo<CLIENT> {
 		trustStorePasswd = trustStorePasswd==null?null:access.decrypt(trustStorePasswd,false);
 		default_alias = access.getProperty(Config.CADI_ALIAS, 
 				access.getProperty(Config.AFT_DME2_CLIENT_SSL_CERT_ALIAS,null));
+		
 		String keyPasswd = access.getProperty(Config.CADI_KEY_PASSWORD,null);
 		keyPasswd = keyPasswd==null?keyStorePasswd:access.decrypt(keyPasswd,false);
-		final boolean trustAllX509 = "true".equalsIgnoreCase(access.getProperty(Config.CADI_TRUST_ALL_X509,
-				access.getProperty(Config.AFT_DME2_SSL_TRUST_ALL,"false")));
-		if(trustAllX509) {
-			System.setProperty(Config.AFT_DME2_SSL_TRUST_ALL, "true");
+		String tips=access.getProperty(Config.CADI_TRUST_MASKS, null);
+		if(tips!=null) {
+			access.log(Level.INIT,"Explicitly accepting valid X509s from",tips);
+			String[] ipsplit = tips.split(REGEX_COMMA);
+			trustMasks = new NetMask[ipsplit.length];
+			for(int i=0;i<ipsplit.length;++i) {
+				try {
+					trustMasks[i]=new NetMask(ipsplit[i]);
+				} catch (MaskFormatException e) {
+					throw new AccessException("Invalid IP Mask in " + Config.CADI_TRUST_MASKS,e);
+				}
+			}
 		}
-		String https_protocols = access.getProperty(Config.CADI_PROTOCOLS, 
-				access.getProperty("AFT_DME2_SSL_INCLUDE_PROTOCOLS", 
-					access.getProperty(HTTPS_PROTOCOLS,"TLSv1.1,TLSv1.2")
+		String https_protocols = Config.logProp(access,Config.CADI_PROTOCOLS, 
+				access.getProperty(Config.AFT_DME2_SSL_INCLUDE_PROTOCOLS, 
+					access.getProperty(HTTPS_PROTOCOLS,HTTPS_PROTOCOLS_DEFAULT)
 					));
 		System.setProperty(HTTPS_PROTOCOLS,https_protocols);
+		System.setProperty(JDK_TLS_CLIENT_PROTOCOLS, https_protocols);
 		
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance(SslKeyManagerFactoryAlgorithm);
 		File file;
 
-		ArrayList<X509KeyManager> kmal = new ArrayList<X509KeyManager>();
 
 		if(keyStore==null || keyStorePasswd == null) { 
 			km = new X509KeyManager[0];
 		} else {
+			ArrayList<X509KeyManager> kmal = new ArrayList<X509KeyManager>();
 			for(String ksname : keyStore.split(REGEX_COMMA)) {
 				file = new File(ksname);
 				String keystoreFormat;
@@ -112,25 +132,8 @@ public class SecurityInfo<CLIENT> {
 			kmal.toArray(km);
 		}
 
-		if(trustAllX509 || trustStore==null || trustStorePasswd == null) { 
-			tm = new TrustManager[] {
-					new X509TrustManager() {
-						private final String text = (trustAllX509?"X509 validation turned off":"Cannot validate X509 Client Validity: No TrustStore set");
-			            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-			                return null;
-			            }
-			            public void checkClientTrusted(
-			                java.security.cert.X509Certificate[] certs, String authType) {
-			            	access.log(Access.Level.WARN, text);
-			            }
-			            public void checkServerTrusted(
-			                java.security.cert.X509Certificate[] certs, String authType) {
-			            	access.log(Access.Level.WARN, text);
-			            }
-			        }
-				};
-		} else {
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance(SslKeyManagerFactoryAlgorithm);
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(SslKeyManagerFactoryAlgorithm);
+		if(trustStore!=null) {
 			for(String tsname : trustStore.split(REGEX_COMMA)) {
 				file = new File(tsname);
 				if(file.exists()) {
@@ -144,21 +147,40 @@ public class SecurityInfo<CLIENT> {
 					}
 				}
 			}
-			tm = tmf.getTrustManagers();
+			TrustManager tms[] = tmf.getTrustManagers();
+			tm = new X509TrustManager[tms==null?0:tms.length];
+			for(int i=0;i<tms.length;++i) {
+				try {
+					tm[i]=(X509TrustManager)tms[i];
+				} catch (ClassCastException e) {
+					access.log(Level.WARN, "Non X509 TrustManager", tm[i].getClass().getName(),"skipped in SecurityInfo");
+				}
+			}
 		}
 		
-		// Create ability to turn off Service IP Checking... but Warn in Logs.
-		trustAll = trustAllX509 || trustStore==null
-				?new HostnameVerifier() {
-					public boolean verify(String urlHostName, SSLSession session) {
-						access.log(Access.Level.DEBUG,"Hostname Verification:",urlHostName,"vs.",session.getPeerHost());
-			            return true;
+		if(trustMasks!=null) {
+			final HostnameVerifier origHV = HttpsURLConnection.getDefaultHostnameVerifier();
+			HttpsURLConnection.setDefaultHostnameVerifier(maskHV = new HostnameVerifier() {
+				@Override
+				public boolean verify(final String urlHostName, final SSLSession session) {
+					try {
+						// This will pick up /etc/host entries as well as DNS
+						InetAddress ia = InetAddress.getByName(session.getPeerHost());
+						for(NetMask tmask : trustMasks) {
+							if(tmask.isInNet(ia.getHostAddress())) {
+								return true;
+							}
+						}
+					} catch (UnknownHostException e) {
+						// It's ok. do normal Verify
 					}
-				}
-				:null;
-
-		SSLContext ctx = SSLContext.getInstance("SSL");
+					return origHV.verify(urlHostName,session);
+				};
+			});
+		}
+		ctx = SSLContext.getInstance("TLS");
 		ctx.init(km, tm, null);
+		SSLContext.setDefault(ctx);
 		scf = ctx.getSocketFactory();
 	}
 
@@ -169,6 +191,9 @@ public class SecurityInfo<CLIENT> {
 		return scf;
 	}
 
+	public SSLContext getSSLContext() {
+		return ctx;
+	}
 
 	/**
 	 * @return the km
@@ -177,25 +202,23 @@ public class SecurityInfo<CLIENT> {
 		return km;
 	}
 
-
-	/**
-	 * @return the tm
-	 */
-	public TrustManager[] getTrustManagers() {
-		return tm;
-	}
-
-
-	public void setSocketFactoryOn(HttpsURLConnection hsuc) {
-		hsuc.setSSLSocketFactory(scf);
-		if(trustAll!=null) {
-			hsuc.setHostnameVerifier(trustAll);
+	public void checkClientTrusted(X509Certificate[] certarr) throws CertificateException {
+		for(X509TrustManager xtm : tm) {
+			xtm.checkClientTrusted(certarr, SECURITY_ALGO);
 		}
 	}
 
-	public SecurityInfo<CLIENT> set(SecuritySetter<CLIENT> defSS) {
-		this.defSS = defSS;
-		return this;
+	public void checkServerTrusted(X509Certificate[] certarr) throws CertificateException {
+		for(X509TrustManager xtm : tm) {
+			xtm.checkServerTrusted(certarr, SECURITY_ALGO);
+		}
+	}
+
+	public void setSocketFactoryOn(HttpsURLConnection hsuc) {
+		hsuc.setSSLSocketFactory(scf);
+		if(maskHV!=null && !maskHV.equals(hsuc.getHostnameVerifier())) {
+			hsuc.setHostnameVerifier(maskHV);
+		}
 	}
 
 }

@@ -20,7 +20,7 @@ import com.att.cadi.CadiException;
 import com.att.cadi.SecuritySetter;
 import com.att.cadi.Symm;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.inno.env.APIException;
 import com.att.inno.env.util.Chrono;
 
@@ -30,24 +30,24 @@ public class HX509SS implements SecuritySetter<HttpURLConnection> {
 	private PrivateKey priv;
 	private byte[] pub;
 	private String cert;
-	private SecurityInfo<HttpURLConnection> securityInfo;
+	private SecurityInfoC<HttpURLConnection> securityInfo;
 	private String algo;
 	private String alias;
 	private static int count = new SecureRandom().nextInt();
 
-	public HX509SS(SecurityInfo<HttpURLConnection> si) throws APIException, IOException, CertificateEncodingException {
+	public HX509SS(SecurityInfoC<HttpURLConnection> si) throws APIException, IOException, CertificateEncodingException {
 		this(null,si,false);
 	}
 	
-	public HX509SS(SecurityInfo<HttpURLConnection> si, boolean asDefault) throws APIException, IOException, CertificateEncodingException {
+	public HX509SS(SecurityInfoC<HttpURLConnection> si, boolean asDefault) throws APIException, IOException, CertificateEncodingException {
 		this(null,si,asDefault);
 	}
 	
-	public HX509SS(final String sendAlias, SecurityInfo<HttpURLConnection> si) throws APIException, IOException, CertificateEncodingException {
+	public HX509SS(final String sendAlias, SecurityInfoC<HttpURLConnection> si) throws APIException, IOException, CertificateEncodingException {
 		this(sendAlias, si, false);
 	}
 
-	public HX509SS(final String sendAlias, SecurityInfo<HttpURLConnection> si, boolean asDefault) throws APIException, IOException, CertificateEncodingException {
+	public HX509SS(final String sendAlias, SecurityInfoC<HttpURLConnection> si, boolean asDefault) throws APIException, IOException, CertificateEncodingException {
 		securityInfo = si;
 		if((alias=sendAlias) == null) {
 			if(si.default_alias == null) {
@@ -76,7 +76,7 @@ public class HX509SS implements SecuritySetter<HttpURLConnection> {
 				cert = baos.toString();
 				
 				/*
-				// Test
+				// Inner Test code, uncomment if fix needed
 				bais = new ByteArrayInputStream(baos.toByteArray());
 				baos = new ByteArrayOutputStream(input.length*2);
 				Symm.base64noSplit().decode(bais,baos,5);
@@ -140,5 +140,9 @@ public class HX509SS implements SecuritySetter<HttpURLConnection> {
 	public String getID() {
 		return alias;
 	}
-
+	
+	@Override
+	public int setLastResponse(int respCode) {
+		return 0;
+	}
 }

@@ -14,7 +14,6 @@ import com.att.cadi.Access.Level;
 import com.att.cadi.filter.NullPermConverter;
 import com.att.cadi.filter.PermConverter;
 import com.att.cadi.lur.EpiLur;
-import com.att.cadi.lur.LocalPermission;
 import com.att.cadi.taf.TafResp;
 
 
@@ -94,7 +93,7 @@ public class CadiWrap extends HttpServletRequestWrapper implements HttpServletRe
 	 */
 // @Override
 	public boolean isUserInRole(String perm) {
-		return checkPerm(access,"Servlet.isUserInRole(permission)",principal,pconv,lur,perm);
+		return perm==null?false:checkPerm(access,"(HttpRequest)",principal,pconv,lur,perm);
 	}
 	
 	public static boolean checkPerm(Access access, String caller, Principal principal, PermConverter pconv, Lur lur, String perm) {
@@ -103,11 +102,11 @@ public class CadiWrap extends HttpServletRequestWrapper implements HttpServletRe
 			return false;
 		} else { 
 			perm = pconv.convert(perm);
-			if(lur.fish(principal,new LocalPermission(perm))) {
-				access.log(Level.DEBUG,caller, principal.getName(), "in '", perm, '\'');
+			if(lur.fish(principal,lur.createPerm(perm))) {
+				access.log(Level.DEBUG,caller, principal.getName(), "has", perm);
 				return true;
 			} else {
-				access.log(Level.DEBUG,caller, principal.getName(), "not in '", perm,'\'');
+				access.log(Level.DEBUG,caller, principal.getName(), "does not have", perm);
 				return false;
 			}
 		}
@@ -137,6 +136,9 @@ public class CadiWrap extends HttpServletRequestWrapper implements HttpServletRe
 	}
 
 	public String getUser() {
+		if(user==null && principal!=null) {
+			user = principal.getName();
+		}
 		return user;
 	}
 

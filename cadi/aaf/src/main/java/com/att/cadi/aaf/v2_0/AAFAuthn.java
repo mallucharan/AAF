@@ -3,9 +3,12 @@
  *******************************************************************************/
 package com.att.cadi.aaf.v2_0;
 
+import java.io.IOException;
+
 import com.att.aft.dme2.api.DME2Exception;
 import com.att.cadi.AbsUserCache;
 import com.att.cadi.CachedPrincipal;
+import com.att.cadi.CadiException;
 import com.att.cadi.GetCred;
 import com.att.cadi.Hash;
 import com.att.cadi.User;
@@ -64,7 +67,7 @@ public class AAFAuthn<CLIENT> extends AbsUserCache<AAFPermission> {
 		// Make a call without security set to get the 401 response, which
 		// includes the Realm of the server
 		// This also checks on Connectivity early on.
-		Future<String> fp = con.client(AAFCon.AAF_VERSION).read("/authn/basicAuth", "text/plain");
+		Future<String> fp = con.client(AAFCon.AAF_LATEST_VERSION).read("/authn/basicAuth", "text/plain");
 		if(fp.get(con.timeout)) {
 			throw new Exception("Do not preset Basic Auth Information for AAFAuthn");
 		} else {
@@ -94,9 +97,11 @@ public class AAFAuthn<CLIENT> extends AbsUserCache<AAFPermission> {
 	 * @param user
 	 * @param password
 	 * @return
+	 * @throws IOException 
+	 * @throws CadiException 
 	 * @throws Exception
 	 */
-	public String validate(String user, String password) throws Exception {
+	public String validate(String user, String password) throws IOException, CadiException {
 		User<AAFPermission> usr = getUser(user);
 		if(password.startsWith("enc:???")) {
 			password = access.decrypt(password, true);
@@ -128,9 +133,11 @@ public class AAFAuthn<CLIENT> extends AbsUserCache<AAFPermission> {
 			case INACCESSIBLE:
 				return "AAF Inaccessible";
 			case UNVALIDATED:
-				return "User/Pass combo invalid";
+				return "User/Pass combo invalid for " + user;
+			case DENIED:
+				return "AAF denies API for " + user;
 			default: 
-				return "AAFAuthn doesn't handle this Principal";
+				return "AAFAuthn doesn't handle Principal " + user;
 		}
 	}
 	
@@ -144,10 +151,13 @@ public class AAFAuthn<CLIENT> extends AbsUserCache<AAFPermission> {
 		}
 
 		public Resp revalidate() {
+			if(con.isDisabled()) {
+				return Resp.DENIED;
+			}
 			try {
 				Miss missed = missed(getName());
 				if(missed==null || missed.mayContinue(getCred())) {
-					Rcli<CLIENT> client = con.client(AAFCon.AAF_VERSION).forUser(con.basicAuth(getName(), new String(getCred())));
+					Rcli<CLIENT> client = con.client(AAFCon.AAF_LATEST_VERSION).forUser(con.basicAuth(getName(), new String(getCred())));
 					Future<String> fp = client.read(
 							"/authn/basicAuth",
 							"text/plain"

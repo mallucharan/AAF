@@ -4,7 +4,6 @@
 package com.att.cadi.taf;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.Principal;
 
 import com.att.cadi.Access;
@@ -43,36 +42,7 @@ class NullTafResp implements TafResp {
 	}
 
 	public Access getAccess() {
-		return new Access() {
-			public void log(Level level, Object... elements) {
-			}
-
-			public void log(Exception e, Object... elements) {
-			}
-
-			public ClassLoader classLoader() {
-				return this.classLoader();
-			}
-
-			public String getProperty(String string, String def) {
-				return null;
-			}
-
-			public void load(InputStream is) throws IOException {
-			}
-
-			public void setLogLevel(Level level) {
-			}
-
-			public String decrypt(String encrypted, boolean anytext) throws IOException {
-				return encrypted;
-			}
-
-			@Override
-			public boolean willLog(Level level) {
-				return false;
-			}
-		};
+		return Access.NULL;
 	}
 
 	/* (non-Javadoc)

@@ -10,9 +10,9 @@ import java.net.URLConnection;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import com.att.cadi.locator.DNSLocator;
+import com.att.cadi.PropAccess;
 import com.att.cadi.Locator.Item;
-import com.att.cadi.dnsloc.DNSLocator;
-import com.client.test.TestAccess;
 
 public class JU_DNSLocator {
 
@@ -23,7 +23,7 @@ public class JU_DNSLocator {
 	@Test
 	public void test() {
 		
-		DNSLocator dl = new DNSLocator(new TestAccess(), "https", "aaf.it.att.com","8150-8152");
+		DNSLocator dl = new DNSLocator(new PropAccess(), "https", "aaf.it.att.com","8150-8152");
 		try {
 			Item item = dl.best();
 			URI uri = dl.get(item);

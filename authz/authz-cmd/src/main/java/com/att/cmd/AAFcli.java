@@ -31,6 +31,7 @@ import com.att.cadi.client.PropertyLocator;
 import com.att.cadi.client.Retryable;
 import com.att.cadi.config.Config;
 import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.dme2.DME2Locator;
 import com.att.cadi.filter.AccessGetter;
 import com.att.cadi.http.HBasicAuthSS;
@@ -65,7 +66,7 @@ public class AAFcli {
 	private ArrayList<Integer> expect = new ArrayList<Integer>();
 	private boolean verbose = true;
 	private int delay;
-	private SecurityInfo<HttpURLConnection> si;
+	private SecurityInfo si;
 	private boolean request = false;
 	private String force = null;
 	private boolean gui = false;
@@ -81,7 +82,7 @@ public class AAFcli {
 		return TIMEOUT;
 	}
 
-	public AAFcli(AuthzEnv env, Writer wtr, HMangr hman, SecurityInfo<HttpURLConnection> si, SecuritySetter<HttpURLConnection> ss) throws APIException {
+	public AAFcli(AuthzEnv env, Writer wtr, HMangr hman, SecurityInfo si, SecuritySetter<HttpURLConnection> ss) throws APIException {
 		this.env = env;
 		this.ss = ss;
 		this.hman = hman;
@@ -185,7 +186,7 @@ public class AAFcli {
 						if (pass != null) {
 							pass = env.decrypt(pass, false);
 							env.setProperty(user, pass);
-							ss = new HBasicAuthSS(user, pass,si);
+							ss = new HBasicAuthSS(user, pass,(SecurityInfoC<HttpURLConnection>) si);
 							pw.println("as " + user);
 						} else { // get Pass from System Properties, under name of
 							// Tag
@@ -441,9 +442,9 @@ public class AAFcli {
 			String aafUrl = gp.get(false, Config.AAF_URL, "https://DME2RESOLVE or Direct URL:port");
 
 			if(aafUrl!=null && aafUrl.contains("//DME2")) {
-				gp.set(Config.AFT_LATITUDE,"Lookup from a Map App or table");
-				gp.set(Config.AFT_LONGITUDE,"Lookup from a Map App or table");
-				gp.set(Config.AFT_ENVIRONMENT,"Check DME2 Installations");
+				//gp.set(Config.AFT_LATITUDE,"Lookup from a Map App or table");
+				//gp.set(Config.AFT_LONGITUDE,"Lookup from a Map App or table");
+				//gp.set(Config.AFT_ENVIRONMENT,"Check DME2 Installations");
 			}
 
 			if (gp.err() != null) {
@@ -491,7 +492,7 @@ public class AAFcli {
 				}
 			}
 
-			SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(env);
+			SecurityInfo si = new SecurityInfo(env);
 			env.loadToSystemPropsStartsWith("AAF", "DME2");
 			Locator loc;
 			if(aafUrl.contains("//DME2RESOLVE")) {
@@ -501,7 +502,7 @@ public class AAFcli {
 				loc = new PropertyLocator(aafUrl);
 			}
 
-			Config.configPropFiles(new AccessGetter(env), env);
+			//Config.configPropFiles(new AccessGetter(env), env);
 			
 			TIMEOUT = Integer.parseInt(env.getProperty(Config.AAF_CONN_TIMEOUT, Config.AAF_CONN_TIMEOUT_DEF));
 			HMangr hman = new HMangr(env, loc).readTimeout(TIMEOUT).apiVersion("2.0");
@@ -510,7 +511,7 @@ public class AAFcli {
 			env.setProperty(Config.AAF_DEFAULT_REALM, System.getProperty(Config.AAF_DEFAULT_REALM,Config.getDefaultRealm()));
 
 			AAFcli aafcli = new AAFcli(env, new OutputStreamWriter(System.out), hman, si, 
-				new HBasicAuthSS(user, env.decrypt(pass,false), si));
+				new HBasicAuthSS(user, env.decrypt(pass,false), (SecurityInfoC<HttpURLConnection>) si));
 			if(!ignoreDelay) {
 				File delay = new File("aafcli.delay");
 				if(delay.exists()) {

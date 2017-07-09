@@ -20,6 +20,7 @@ import org.junit.Test;
 import com.att.cadi.CredVal.Type;
 import com.att.cadi.Lur;
 import com.att.cadi.Permission;
+import com.att.cadi.PropAccess;
 import com.att.cadi.Symm;
 import com.att.cadi.config.UsersDump;
 import com.att.cadi.lur.LocalLur;
@@ -34,7 +35,7 @@ public class JU_LocalLur {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		baos.write(Symm.ENC.getBytes());
 		symmetric.enpass("<pass>", baos);
-		TestAccess ta = new TestAccess(symmetric);
+		PropAccess ta = new PropAccess();
 		Lur ml = up = new LocalLur(ta,"myname:groupA,groupB","admin:myname,yourname;suser:hisname,hername,m1234%"+baos.toString());
 		
 		Permission admin = new LocalPermission("admin");

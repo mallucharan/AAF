@@ -23,7 +23,6 @@ import com.att.cadi.BasicCred;
  * It is as thread safe as StAX parsing is.
  * 
  */
-@SuppressWarnings({ "unchecked" })
 public class WSSEParser {
 	private static final String SOAP_NS = "http://schemas.xmlsoap.org/soap/envelope/";
 	private static final String WSSE_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";

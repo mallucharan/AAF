@@ -15,6 +15,7 @@ import com.att.authz.env.AuthzTrans;
 import com.att.authz.layer.Result;
 import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.Slot;
+import com.att.inno.env.TransStore;
 
 /**
  * API Apis.. using Redirect for mechanism
@@ -34,7 +35,7 @@ public class API_Cert {
 	 */
 	public static void init(final CertManAPI cmAPI) throws Exception {
 		// Check for Created Certificate Authorities in TRANS
-		sCertAuth = cmAPI.env.slot(CERT_AUTH);
+		sCertAuth = ((TransStore) cmAPI.env).slot(CERT_AUTH);
 		
 		////////
 		// Overall APIs

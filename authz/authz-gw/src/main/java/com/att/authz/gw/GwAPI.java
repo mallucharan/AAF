@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.att.aft.dme2.api.DME2Exception;
+
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
 import com.att.aft.dme2.api.DME2ServerProperties;
@@ -19,30 +20,24 @@ import com.att.aft.dme2.api.DME2ServiceHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.util.DME2ServletHolder;
-import com.att.authz.common.Define;
 import com.att.authz.env.AuthzEnv;
-import com.att.authz.env.AuthzTrans;
-import com.att.authz.env.AuthzTransFilter;
-import com.att.authz.env.AuthzTransOnlyFilter;
 import com.att.authz.gw.api.API_AAFAccess;
 import com.att.authz.gw.api.API_Api;
 import com.att.authz.gw.api.API_Find;
 import com.att.authz.gw.api.API_Proxy;
 import com.att.authz.gw.api.API_TGuard;
-import com.att.authz.gw.facade.GwFacadeFactory;
 import com.att.authz.gw.facade.GwFacade_1_0;
 import com.att.authz.gw.mapper.Mapper.API;
 import com.att.authz.server.AbsServer;
 import com.att.cache.Cache;
 import com.att.cache.Cache.Dated;
 import com.att.cadi.CadiException;
+//import com.att.cadi.PropAccess;
 import com.att.cadi.aaf.v2_0.AAFAuthn;
 import com.att.cadi.aaf.v2_0.AAFLurPerm;
-import com.att.cadi.aaf.v2_0.AAFTrustChecker;
 import com.att.cadi.config.Config;
 import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.APIException;
-import com.att.inno.env.Data;
 
 public class GwAPI extends AbsServer {
 	private static final String USER_PERMS = "userPerms";
@@ -69,22 +64,22 @@ public class GwAPI extends AbsServer {
 		aafurl = env.getProperty(Config.AAF_URL); 
 
 		// Setup Logging
-		env.setLog4JNames("log4j.properties","authz","gw","audit","init","trace");
+		//env.setLog4JNames("log4j.properties","authz","gw","audit","init","trace");
 
 		aafLurPerm = aafCon.newLur();
 		// Note: If you need both Authn and Authz construct the following:
 		aafAuthn = aafCon.newAuthn(aafLurPerm);
 
 		// Initialize Facade for all uses
-		AuthzTrans trans = env.newTrans();
+		//AuthzTrans trans = env.newTrans();
 
-		facade = GwFacadeFactory.v1_0(env,trans,Data.TYPE.JSON);   // Default Facade
-		facade_1_0_XML = GwFacadeFactory.v1_0(env,trans,Data.TYPE.XML);
+	//	facade = GwFacadeFactory.v1_0(env,trans,Data.TYPE.JSON);   // Default Facade
+	//	facade_1_0_XML = GwFacadeFactory.v1_0(env,trans,Data.TYPE.XML);
 
 		synchronized(env) {
 			if(cacheUser == null) {
 				cacheUser = Cache.obtain(USER_PERMS);
-				Cache.startCleansing(env, USER_PERMS);
+				//Cache.startCleansing(env, USER_PERMS);
 				Cache.addShutdownHook(); // Setup Shutdown Hook to close cache
 			}
 		}
@@ -128,17 +123,17 @@ public class GwAPI extends AbsServer {
 		if(respCls==null) throw new Exception("Unknown class associated with " + api.getClass().getName() + ' ' + api.name());
 		// setup Application API HTML ContentTypes for JSON and Route
 		String application = applicationJSON(respCls, version);
-		route(env,meth,path,code,application,"application/json;version="+version,"*/*");
+		//route(env,meth,path,code,application,"application/json;version="+version,"*/*");
 
 		// setup Application API HTML ContentTypes for XML and Route
 		application = applicationXML(respCls, version);
-		route(env,meth,path,code.clone(facade_1_0_XML,false),application,"text/xml;version="+version);
+		//route(env,meth,path,code.clone(facade_1_0_XML,false),application,"text/xml;version="+version);
 		
 		// Add other Supported APIs here as created
 	}
 	
 	public void routeAll(HttpMethods meth, String path, API api, GwCode code) throws Exception {
-		route(env,meth,path,code,""); // this will always match
+		//route(env,meth,path,code,""); // this will always match
 	}
 
 
@@ -180,17 +175,17 @@ public class GwAPI extends AbsServer {
 	        List<DME2FilterHolder> flist = new ArrayList<DME2FilterHolder>();
 	        
 	        // Leave Login page un secured
-	        AuthzTransOnlyFilter atof = new AuthzTransOnlyFilter(env);
-	        flist.add(new DME2FilterHolder(atof,"/login", edlist));
+	       // AuthzTransOnlyFilter atof = new AuthzTransOnlyFilter(env);
+	      //  flist.add(new DME2FilterHolder(atof,"/login", edlist));
 
 	        // Secure all other interactions with AuthzTransFilter
-	        flist.add(new DME2FilterHolder(
-	        		new AuthzTransFilter(env, aafCon, new AAFTrustChecker(
-	    	        		env.getProperty(Config.CADI_TRUST_PROP, Config.CADI_USER_CHAIN),
-	    	        		Define.ROOT_NS + ".mechid|"+Define.ROOT_COMPANY+"|trust"
-	        			)),
-	        		"/*", edlist));
-	        
+//	        flist.add(new DME2FilterHolder(
+//	        		new AuthzTransFilter(env, aafCon, new AAFTrustChecker(
+//	    	        		env.getProperty(Config.CADI_TRUST_PROP, Config.CADI_USER_CHAIN),
+//	    	        		Define.ROOT_NS + ".mechid|"+Define.ROOT_COMPANY+"|trust"
+//	        			)),
+//	        		"/*", edlist));
+//	        
 
 	        svcHolder.setFilters(flist);
 	        svcHolder.setServletHolders(slist);
@@ -198,31 +193,37 @@ public class GwAPI extends AbsServer {
 	        DME2Server dme2svr = dme2Man.getServer();
 //	        dme2svr.setGracefulShutdownTimeMs(1000);
 	
-	        env.init().log("Starting GW Jetty/DME2 server...");
+	       // env.init().log("Starting GW Jetty/DME2 server...");
 	        dme2svr.start();
 	        DME2ServerProperties dsprops = dme2svr.getServerProperties();
 	        try {
 //	        	if(env.getProperty("NO_REGISTER",null)!=null)
 	        	dme2Man.bindService(svcHolder);
-	        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
+//	        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
 
 	            while(true) { // Per DME2 Examples...
 	            	Thread.sleep(5000);
 	            }
 	        } catch(InterruptedException e) {
-	            env.init().log("AAF Jetty Server interrupted!");
+	           // env.init().log("AAF Jetty Server interrupted!");
 	        } catch(Exception e) { // Error binding service doesn't seem to stop DME2 or Process
-	            env.init().log(e,"DME2 Initialization Error");
+	         //   env.init().log(e,"DME2 Initialization Error");
 	        	dme2svr.stop();
 	        	System.exit(1);
 	        }
     	} else {
-    		env.init().log("Properties must contain DMEServiceName");
+    		//env.init().log("Properties must contain DMEServiceName");
     	}
 	}
 
 	public static void main(String[] args) {
 		setup(GwAPI.class,"authGW.props");
 	}
+
+//	public void route(PropAccess env, HttpMethods get, String string, GwCode gwCode, String string2, String string3,
+//			String string4) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 }

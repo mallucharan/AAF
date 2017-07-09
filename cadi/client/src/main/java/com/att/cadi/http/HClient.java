@@ -47,7 +47,7 @@ public class HClient implements EClient<HttpURLConnection> {
 
 	public HClient(SecuritySetter<HttpURLConnection> ss, URI uri,int connectTimeout) throws LocatorException {
 		if (uri == null) {
-			throw new LocatorException("No Client available to call");
+			throw new LocatorException("No Service available to call");
 		}
 		this.uri = uri;
 		this.ss = ss;
@@ -139,25 +139,116 @@ public class HClient implements EClient<HttpURLConnection> {
 		}
 	}
 
+	public abstract class HFuture<T> extends Future<T> {
+		protected HttpURLConnection huc;
+		protected int respCode;
+		protected String respMessage;
+		protected IOException exception;
+		protected StringBuilder errContent;
+	
+		public HFuture(final HttpURLConnection huc) {
+			this.huc = huc;
+		}
+	
+		protected boolean evalInfo(HttpURLConnection huc) throws APIException, IOException{
+			return respCode == 200;
+		};
+	
+		@Override
+		public final boolean get(int timeout) throws CadiException {
+			try {
+				huc.setReadTimeout(timeout);
+				respCode = huc.getResponseCode();
+				ss.setLastResponse(respCode);
+				if(evalInfo(huc)) {
+					return true;
+				} else {
+					extractError();
+					return false;
+				}
+			} catch (IOException | APIException e) {
+				throw new CadiException(e);
+			} finally {
+				close();
+			}
+		}
+	
+		private void extractError() {
+			InputStream is = huc.getErrorStream();
+			try {
+				if(is==null) {
+					is = huc.getInputStream();
+				}
+				if(is!=null) {
+				errContent = new StringBuilder();
+				int c;
+					while((c=is.read())>=0) {
+						errContent.append((char)c);
+					}
+				}
+			} catch (IOException e) {
+				exception = e;
+			}
+		}
+	
+		// Typically only used by Read
+		public StringBuilder inputStreamToString(InputStream is) {
+			// Avoids Carriage returns, and is reasonably efficient, given
+			// the buffer reads.
+			try {
+				StringBuilder sb = new StringBuilder();
+				Reader rdr = new InputStreamReader(is);
+				try {
+					char[] buf = new char[256];
+					int read;
+					while ((read = rdr.read(buf)) >= 0) {
+						sb.append(buf, 0, read);
+					}
+				} finally {
+					rdr.close();
+				}
+				return sb;
+			} catch (IOException e) {
+				exception = e;
+				return null;
+			}
+		}
+	
+	
+		@Override
+		public int code() {
+			return respCode;
+		}
+	
+		public HttpURLConnection huc() {
+			return huc;
+		}
+	
+		public IOException exception() {
+			return exception;
+		}
+	
+		public String respMessage() {
+			return respMessage;
+		}
+	
+		@Override
+		public String header(String tag) {
+			return huc.getHeaderField(tag);
+		}
+	
+		public void close() {
+			if(huc!=null) {
+				huc.disconnect();
+			}
+		}
+	}
+
 	@Override
 	public <T> Future<T> futureCreate(Class<T> t) {
 		return new HFuture<T>(huc) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					huc.setReadTimeout((int) timeout);
-					respMessage = huc.getResponseMessage();
-					respCode = huc.getResponseCode();
-					if(respCode == 201) {
-						return true; 
-					} else {
-						extractError();
-						return false;
-					}
-				} catch (IOException e) {
-					throw new CadiException(e);
-				} finally {
-					close();
-				}
+			public boolean evalInfo(HttpURLConnection huc) {
+				return respCode==201;
 			}
 
 			@Override
@@ -170,35 +261,21 @@ public class HClient implements EClient<HttpURLConnection> {
 				}
 				return "";
 			}
-
 		};
-
 	}
 
 	@Override
 	public Future<String> futureReadString() {
 		return new HFuture<String>(huc) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					huc.setReadTimeout(timeout);
-					respCode = huc.getResponseCode();
-					respMessage = huc.getResponseMessage();
-					if (respCode == 200) {
-						StringBuilder sb = inputStreamToString(huc.getInputStream());
-						if (sb != null) {
-							value = sb.toString();
-						}
-						return true;
-					} else {
-						extractError();
+			public boolean evalInfo(HttpURLConnection huc) throws IOException {
+				if (respCode == 200) {
+					StringBuilder sb = inputStreamToString(huc.getInputStream());
+					if (sb != null) {
+						value = sb.toString();
 					}
-				} catch (IOException e) {
-					throw new CadiException(e);
-				} finally {
-					close();
+					return true;
 				}
 				return false;
-
 			}
 
 			@Override
@@ -221,22 +298,11 @@ public class HClient implements EClient<HttpURLConnection> {
 		return new HFuture<T>(huc) {
 			private Data<T> data;
 
-			public boolean get(int timeout) throws CadiException {
-				try {
-					huc.setReadTimeout(timeout);
-					respCode = huc.getResponseCode();
-					respMessage = huc.getResponseMessage();
-					if (respCode == 200) {
-						data = df.newData().in(type).load(huc.getInputStream());
-						value = data.asObject();
-						return true;
-					} else {
-						extractError();
-					}
-				} catch (IOException | APIException e) {
-					throw new CadiException(e);
-				} finally {
-					close();
+			public boolean evalInfo(HttpURLConnection huc) throws APIException, IOException {
+				if (respCode == 200) {
+					data = df.newData().in(type).load(huc.getInputStream());
+					value = data.asObject();
+					return true;
 				}
 				return false;
 			}
@@ -261,21 +327,10 @@ public class HClient implements EClient<HttpURLConnection> {
 	@Override
 	public <T> Future<T> future(final T t) {
 		return new HFuture<T>(huc) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					huc.setReadTimeout(timeout);
-					respCode = huc.getResponseCode();
-					respMessage = huc.getResponseMessage();
-					if (respCode == 200) {
-						value = t;
-						return true;
-					} else {
-						extractError();
-					}
-				} catch (IOException e) {
-					throw new CadiException(e);
-				} finally {
-					close();
+			public boolean evalInfo(HttpURLConnection huc) {
+				if (respCode == 200) {
+					value = t;
+					return true;
 				}
 				return false;
 			}
@@ -295,17 +350,30 @@ public class HClient implements EClient<HttpURLConnection> {
 	@Override
 	public Future<Void> future(final HttpServletResponse resp, final int expected) throws APIException {
 		return new HFuture<Void>(huc) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					huc.setReadTimeout(timeout);
-					resp.setStatus(respCode=huc.getResponseCode());
-					respMessage = huc.getResponseMessage();
-					int read;
-					InputStream is;
-					OutputStream os = resp.getOutputStream();
-					if(respCode==expected) {
+			public boolean evalInfo(HttpURLConnection huc) throws IOException, APIException {
+				resp.setStatus(respCode);
+				int read;
+				InputStream is;
+				OutputStream os = resp.getOutputStream();
+				if(respCode==expected) {
+					is = huc.getInputStream();
+					// reuse Buffers
+					Pooled<byte[]> pbuff = Rcli.buffPool.get();
+					try { 
+						while((read=is.read(pbuff.content))>=0) {
+							os.write(pbuff.content,0,read);
+						}
+					} finally {
+						pbuff.done();
+					}
+					return true;
+				} else {
+					is = huc.getErrorStream();
+					if(is==null) {
 						is = huc.getInputStream();
-						// reuse Buffers
+					}
+					if(is!=null) {
+						errContent = new StringBuilder();
 						Pooled<byte[]> pbuff = Rcli.buffPool.get();
 						try { 
 							while((read=is.read(pbuff.content))>=0) {
@@ -314,30 +382,9 @@ public class HClient implements EClient<HttpURLConnection> {
 						} finally {
 							pbuff.done();
 						}
-						return true;
-					} else {
-						is = huc.getErrorStream();
-						if(is==null) {
-							is = huc.getInputStream();
-						}
-						if(is!=null) {
-							errContent = new StringBuilder();
-							Pooled<byte[]> pbuff = Rcli.buffPool.get();
-							try { 
-								while((read=is.read(pbuff.content))>=0) {
-									os.write(pbuff.content,0,read);
-								}
-							} finally {
-								pbuff.done();
-							}
-						}
 					}
-					return false;
-				} catch (IOException | APIException e) {
-					throw new CadiException(e);
-				} finally {
-					close();
 				}
+				return false;
 			}
 
 			@Override
@@ -345,100 +392,6 @@ public class HClient implements EClient<HttpURLConnection> {
 				return errContent==null?respMessage:errContent.toString();
 			}
 		};
-	}
-
-	public abstract class HFuture<T> extends Future<T> {
-		protected HttpURLConnection huc;
-		protected int respCode;
-		protected String respMessage;
-		protected IOException exception;
-		protected StringBuilder errContent;
-
-		public HFuture(final HttpURLConnection huc) {
-			this.huc = huc;
-		}
-
-		@Override
-		public boolean get(int timeout) throws CadiException {
-			try {
-				huc.setReadTimeout(timeout);
-				respCode = huc.getResponseCode();
-				respMessage = huc.getResponseMessage();
-			} catch (IOException e) {
-				throw new CadiException(e);
-			} finally {
-				close();
-			}
-			return respCode == 200;
-		}
-
-		protected void extractError() {
-			InputStream is = huc.getErrorStream();
-			try {
-				if(is==null) {
-					is = huc.getInputStream();
-				}
-				if(is!=null) {
-				errContent = new StringBuilder();
-				int c;
-					while((c=is.read())>=0) {
-						errContent.append((char)c);
-					}
-				}
-			} catch (IOException e) {
-				exception = e;
-			}
-		}
-
-		// Typically only used by Read
-		public StringBuilder inputStreamToString(InputStream is) {
-			// Avoids Carriage returns, and is reasonably efficient, given
-			// the buffer reads.
-			try {
-				StringBuilder sb = new StringBuilder();
-				Reader rdr = new InputStreamReader(is);
-				try {
-					char[] buf = new char[256];
-					int read;
-					while ((read = rdr.read(buf)) >= 0) {
-						sb.append(buf, 0, read);
-					}
-				} finally {
-					rdr.close();
-				}
-				return sb;
-			} catch (IOException e) {
-				exception = e;
-				return null;
-			}
-		}
-
-
-		@Override
-		public int code() {
-			return respCode;
-		}
-
-		public HttpURLConnection huc() {
-			return huc;
-		}
-
-		public IOException exception() {
-			return exception;
-		}
-
-		public String respMessage() {
-			return respMessage;
-		}
-
-		@Override
-		public String header(String tag) {
-			return huc.getHeaderField(tag);
-		}
-
-		public void close() {
-			huc.disconnect();
-		}
 	}
 
 	private static class Header {
@@ -454,5 +407,8 @@ public class HClient implements EClient<HttpURLConnection> {
 			return tag + '=' + value;
 		}
 	}
-
+	
+	public String toString() {
+		return "HttpURLConnection Client configured to " + uri.toString();
+	}
 }

@@ -20,6 +20,11 @@ import java.util.List;
  *
  */
 public interface Lur {
+	/**
+	 * Allow the Lur, which has correct Permission access, to create and hand back. 
+	 */
+	public Permission createPerm(String p);
+	
 	/** 
 	 * Fish for Principals in a Pond
 	 * 
@@ -62,5 +67,9 @@ public interface Lur {
 	 * @return
 	 */
 	public boolean supports(String userName);
-
+	
+	/**
+	 * Clear: Clear any Caching, if exists
+	 */
+	public void clear(Principal p, StringBuilder report);
 }

@@ -49,6 +49,13 @@ public class StoreImpl implements Store {
 		 localMap = new HashMap<String,Slot>();
 	}
 	
+	public StoreImpl(String tag) {
+		 staticState = new Object[growSize];
+		 staticMap = new HashMap<String,StaticSlot>();
+		 localMap = new HashMap<String,Slot>();
+	}
+
+	
 	public StoreImpl(String tag, String[] args) {
 		 staticState = new Object[growSize];
 		 staticMap = new HashMap<String,StaticSlot>();
@@ -59,7 +66,7 @@ public class StoreImpl implements Store {
 			for(String arg : args) {
 				if(arg.startsWith(tequals) && !arg.equals(tequals)) { // needs to have something after =
 					Properties props = new Properties();
-					for(String f : Split.split(';',arg.substring(tequals.length()))) {
+					for(String f : Split.split(File.pathSeparatorChar,arg.substring(tequals.length()))) {
 						moreProps(new File(f),props);
 					}
 					for(Entry<Object, Object> es : props.entrySet()) {
@@ -70,13 +77,7 @@ public class StoreImpl implements Store {
 		 }
 
 		// Make sure properties on command line override those in Props
-		for(String arg : args) {
-			String sarg[] = Split.split('=',arg);
-			if(sarg.length==2) {
-				put(staticSlot(sarg[0]),sarg[1]);
-			}
-		}
-
+		propsFromArgs(tag,args);
 	}
 	
 	public StoreImpl(String tag, Properties props) {
@@ -87,7 +88,7 @@ public class StoreImpl implements Store {
 		 if(tag!=null) {
 			 String fname = props.getProperty(tag);
 			 if(fname!=null) {
-				 for(String f : Split.split(';',fname)) {
+				 for(String f : Split.split(File.pathSeparatorChar,fname)) {
 					 if(!moreProps(new File(f),props)) {
 						System.err.println("Unable to load Properties from " + f); 
 					 }
@@ -100,6 +101,20 @@ public class StoreImpl implements Store {
 		 }
 	}
 
+	public void propsFromArgs(String tag, String[] args) {
+		for(String arg : args) {
+			String sarg[] = Split.split('=',arg);
+			if(sarg.length==2) {
+				if(tag.equals(sarg[0])) {
+					for(String fname : Split.split(File.pathSeparatorChar,sarg[1])) {
+						moreProps(new File(fname),null /* no target */);
+					}
+				}
+				put(staticSlot(sarg[0]),sarg[1]);
+			}
+		}
+	}
+
 	private boolean moreProps(File f, Properties target) {
 		 if(f.exists()) {
 			 Properties props = new Properties();
@@ -107,7 +122,9 @@ public class StoreImpl implements Store {
 				 FileInputStream fis = new FileInputStream(f);
 				 try {
 					 props.load(fis);
-					 target.load(fis);
+					 if(target!=null) {
+						 target.load(fis);
+					 }
 				 } finally {
 					 fis.close();
 				 }

@@ -312,7 +312,7 @@ public class API_AAFAccess {
 		try {
 			if(loc.hasItems()) {
 				Item item = loc.best();
-				URI uri = loc.get(item);
+				URI uri = (URI) loc.get(item);
 				StringBuilder redirectURL = new StringBuilder(uri.toString()); 
 				redirectURL.append('/');
 				redirectURL.append(path);

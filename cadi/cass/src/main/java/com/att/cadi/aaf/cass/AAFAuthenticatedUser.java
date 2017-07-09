@@ -29,6 +29,10 @@ public class AAFAuthenticatedUser extends AuthenticatedUser implements Principal
 		return fullName;
 	}
 	
+	public String getName() {
+		return fullName;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.apache.cassandra.auth.AuthenticatedUser#isAnonymous()
 	 */

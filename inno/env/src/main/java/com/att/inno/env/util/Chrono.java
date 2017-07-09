@@ -7,7 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.logging.Formatter;
@@ -265,7 +265,7 @@ public class Chrono {
 	}
 
 
-	private static long sequence = new Random().nextInt();
+	private static long sequence = new SecureRandom().nextInt();
 	private static synchronized long sequence() {
 		return ++sequence;
 	}

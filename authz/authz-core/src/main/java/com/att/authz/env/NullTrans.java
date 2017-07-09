@@ -195,5 +195,11 @@ public class NullTrans implements AuthzTrans {
 	public void logAuditTrail(LogTarget lt) {
 	}
 
+	@Override
+	public Metric auditTrail(LogTarget lt, int indent, StringBuilder sb, int... flag) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
 

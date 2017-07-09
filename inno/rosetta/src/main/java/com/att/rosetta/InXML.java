@@ -58,6 +58,9 @@ public class InXML implements Parse<Reader, State> {
 			while(go && (ch=r.read())>=0) {
 				c = (char)ch;
 				if(c == '"') {
+					if(state.greatExp instanceof LeafExpectations) { // within a set of Tags, make a Quote
+						sb.append(c);
+					} else {
 						if(inQuotes) {
 							if(escaped) {
 								sb.append('\\');
@@ -70,12 +73,12 @@ public class InXML implements Parse<Reader, State> {
 							parsed.isString=true;
 							inQuotes = true;
 						}
+					}
 				} else if(inQuotes) {
 					sb.append(c);
 				} else if(c=='&') {
 					XmlEscape.xmlEscape(sb,r);
-				} else 
-{
+				} else {
 					switch(c) {
 						case '<':
 							DerTag tag=new DerTag().parse(r, tempSB);

@@ -3,9 +3,7 @@
  *******************************************************************************/
 package com.att.cadi.principal;
 
-import java.security.Principal;
-
-public class TGuardPrincipal implements Principal {
+public class TGuardPrincipal extends BearerPrincipal {
 
 	private String name, tresp;
 

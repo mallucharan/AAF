@@ -4,7 +4,7 @@
 /**
  *
  * Created on: Aug 19, 2009
- * Created by: jg1555
+ * Created by:
  *
  * (c) 2009 SBC Knowledge Ventures, L.P. All rights reserved.
  ******************************************************************* 

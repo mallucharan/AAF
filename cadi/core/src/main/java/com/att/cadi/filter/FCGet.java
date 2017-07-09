@@ -22,8 +22,8 @@ class FCGet implements Get {
 	private FilterConfig filterConfig;
 	private ServletContext context;
 
-	public FCGet(Access cadiFilter, ServletContext context, FilterConfig filterConfig) {
-		this.access = cadiFilter;
+	public FCGet(Access access, ServletContext context, FilterConfig filterConfig) {
+		this.access = access;
 		this.context = context;
 		this.filterConfig = filterConfig;
 	}
@@ -40,13 +40,18 @@ class FCGet implements Get {
 			str = filterConfig.getInitParameter(name);
 		}
 		
+		if(str==null) {
+			str = access.getProperty(name, def);
+		}
 		// Take def if nothing else
 		if(str==null) {
 			str = def;
 			// don't log defaults
 		} else {
 			str = str.trim(); // this is vital in Property File based values, as spaces can hide easily
-			if(print)this.access.log(Level.INFO,"Setting", name, "to", str);
+			if(print) {
+				access.log(Level.INFO,"Setting", name, "to", str);
+			}
 		}
 		return str;
 	}

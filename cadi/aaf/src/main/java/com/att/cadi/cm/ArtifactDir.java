@@ -58,6 +58,19 @@ public abstract class ArtifactDir implements PlaceArtifact {
 				// Also place cm_url and Host Name
 				addProperty(Config.CM_URL,trans.getProperty(Config.CM_URL));
 				addProperty(Config.HOSTNAME,arti.getMachine());
+				//addProperty(Config.AAF_ENV,certInfo.getEnv());
+				// Obtain Issuers
+				boolean first = true;
+				StringBuilder issuers = new StringBuilder();
+//				for(String dn : certInfo.getCaIssuerDNs()) {
+//					if(first) {
+//						first=false;
+//					} else {
+//						issuers.append(':');
+//					}
+//					issuers.append(dn);
+//				}
+				addProperty(Config.CADI_X509_ISSUERS,issuers.toString());
 			}
 			symm = (Symm)processed.get("symm");
 			if(symm==null) {
@@ -163,7 +176,7 @@ public abstract class ArtifactDir implements PlaceArtifact {
 			if(sb.length()>0) {
 				sb.append('\n');
 			}
-			sb.append("File Artifacts require an appName");
+			sb.append("File Artifacts require an AAF Namespace");
 		}
 		
 		if(sb.length()>0) {
@@ -205,7 +218,9 @@ public abstract class ArtifactDir implements PlaceArtifact {
 				}
 				pw.println();
 				for(String prop : encodeds) {
-					if(prop.startsWith("cm_") || prop.startsWith(Config.HOSTNAME)) {
+					if(    prop.startsWith("cm_") 
+						|| prop.startsWith(Config.HOSTNAME)
+						|| prop.startsWith(Config.AAF_ENV)) {
 						pw.println(prop);
 					}
 				}
@@ -220,7 +235,7 @@ public abstract class ArtifactDir implements PlaceArtifact {
 			} finally {
 				pw.close();
 			}
-			Chmod.to400.chmod(f);
+			Chmod.to644.chmod(f);
 			
 			if(first) {
 				// Challenge

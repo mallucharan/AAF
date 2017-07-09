@@ -36,7 +36,7 @@ public class PaulUzee {
 
 			
 			for(Item item = loc.first(); item!=null; item=loc.next(item)) {
-				URI location = loc.get(item);
+				URI location = (URI) loc.get(item);
 				access.log(Level.INFO,location);
 				access.log(Level.INFO,location.getScheme());
 				access.log(Level.INFO,location.getHost());
@@ -115,6 +115,12 @@ public class PaulUzee {
 		@Override
 		public boolean willLog(Level level) {
 			return true;
+		}
+
+		@Override
+		public void printf(Level level, String fmt, Object... elements) {
+			// TODO Auto-generated method stub
+			
 		}
 	};
 }

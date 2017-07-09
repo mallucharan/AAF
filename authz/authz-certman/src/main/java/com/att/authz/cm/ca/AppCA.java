@@ -147,7 +147,7 @@ public class AppCA extends CA {
 							if(crt.exists()) {
 								bytes = Factory.decode(crt);
 								try {
-									Collection<? extends Certificate> cc = Factory.toX509Certificate(trans, bytes);
+									Collection<? extends Certificate> cc = Factory.toX509Certificate(bytes);
 									for(Certificate c : cc) {
 										trustCerts.add((X509Certificate)c);
 									}

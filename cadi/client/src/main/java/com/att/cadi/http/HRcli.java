@@ -9,9 +9,9 @@ import java.net.URISyntaxException;
 
 import com.att.aft.dme2.api.DME2Exception;
 import com.att.cadi.CadiException;
-import com.att.cadi.Locator.Item;
 import com.att.cadi.LocatorException;
 import com.att.cadi.SecuritySetter;
+import com.att.cadi.Locator.Item;
 import com.att.cadi.client.EClient;
 import com.att.cadi.client.Rcli;
 import com.att.inno.env.APIException;
@@ -66,7 +66,11 @@ public class HRcli extends Rcli<HttpURLConnection> {
 	protected EClient<HttpURLConnection> client() throws CadiException {
 		try {
 			if(uri==null) {
-				uri = hman.loc.get(hman.loc.best());
+				Item item = hman.loc.best();
+				if(item==null) {
+					throw new CadiException("No service available for " + hman.loc.toString());
+				}
+				uri = hman.loc.get(item);
 			}
 			return new HClient(ss,uri,connectionTimeout);
 		} catch (Exception e) {

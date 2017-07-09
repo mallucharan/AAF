@@ -3,15 +3,19 @@
  *******************************************************************************/
 package com.att.cadi;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 import com.att.cadi.util.Chmod;
+import com.att.cadi.util.JsonOutputStream;
 
 
 
@@ -91,7 +95,69 @@ public class CmdLine {
 					} finally {
 						fis.close();
 					}
-					symm.depass(args[1], System.out);
+					boolean isFile = false;
+					if("-i".equals(args[1]) || (isFile="-f".equals(args[1]))) {
+						BufferedReader br;
+						if(isFile) {
+							if(args.length<4) {
+								System.err.println("Filename in 4th position");
+								return;
+							}
+							br = new BufferedReader(new FileReader(args[3]));
+						} else {
+							br = new BufferedReader(new InputStreamReader(System.in));
+						}
+						try {
+							String line;
+							boolean cont = false;
+							StringBuffer sb = new StringBuffer();
+							JsonOutputStream jw = new JsonOutputStream(System.out);
+							while((line=br.readLine())!=null) {
+								if(cont) {
+									int end;
+									if((end=line.indexOf('"'))>=0) {
+										sb.append(line,0,end);
+										cont=false;
+									} else {
+										sb.append(line);
+									}
+								} else {
+									int idx;
+									if((idx = line.indexOf(' '))>=0 
+											&& (idx = line.indexOf(' ',++idx))>0
+											&& (idx = line.indexOf('=',++idx))>0
+											&& (idx = line.indexOf('=',++idx))>0
+											) {
+										System.out.println(line.substring(0, idx-5));
+										int start = idx+2;
+										int end;
+										if((end=line.indexOf('"',start))<0) {
+											end = line.length();
+											cont = true;
+										}
+										sb.append(line,start,end);
+									}
+								}
+								if(sb.length()>0) {
+									symm.depass(sb.toString(),jw);
+									if(!cont) {
+										System.out.println();
+									}
+								}
+								System.out.flush();
+								sb.setLength(0);
+								if(!cont) {
+									jw.resetIndent();
+								}
+							}
+						} finally {
+							if(isFile) {
+								br.close();
+							}
+						}
+					} else {
+						symm.depass(args[1], System.out);
+					}
 					System.out.println();
 					System.out.flush();
 					return;
@@ -150,12 +216,17 @@ public class CmdLine {
 				return;
 			} else if("sha256".equalsIgnoreCase(args[0]) && args.length>1) {
 				try {
-					System.out.println(Hash.hashSHA256asStringHex(args[1]));
-					System.out.flush();
+					if(args.length>2) {
+						int salt = Integer.parseInt(args[2]);
+						System.out.println(Hash.hashSHA256asStringHex(args[1],salt));
+					} else { 
+						System.out.println(Hash.hashSHA256asStringHex(args[1]));
+					}
 				} catch (NoSuchAlgorithmException e) {
 					System.err.println("Cannot hash SHA256 text from " + args[1]);
 					System.err.println("   \""+ e.getMessage() + '"');
 				}
+				System.out.flush();
 				return;
 			} else if("keygen".equalsIgnoreCase(args[0])) {
 				try {
@@ -182,7 +253,7 @@ public class CmdLine {
 			
 			} else if("passgen".equalsIgnoreCase(args[0])) {
 				int numDigits;
-				if(args.length < 1) {
+				if(args.length <= 1) {
 					numDigits = 24;
 				} else {
 					numDigits = Integer.parseInt(args[1]); 
@@ -249,9 +320,9 @@ public class CmdLine {
 		} else {
 			System.out.println("Usage: java -jar <this jar> ...");
 			System.out.println("  keygen [<keyfile>]                     (Generates Key on file, or Std Out)");
+			System.out.println("  digest <keyfile>                       (Encrypts to Key with \"keyfile\")");
 			System.out.println("  passgen <digits>                       (Generate Password of given size)");
 			System.out.println("  urlgen <digits>                        (Generate URL field of given size)");
-			System.out.println("  digest <keyfile>                       (Encrypts to Key with \"keyfile\")");
 			System.out.println("  csptest                                (Tests for CSP compatibility)");
 			System.out.println("  encode64 <your text>                   (Encodes to Base64)");
 			System.out.println("  decode64 <base64 encoded text>         (Decodes from Base64)");

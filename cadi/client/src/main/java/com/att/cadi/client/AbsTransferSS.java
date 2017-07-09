@@ -6,14 +6,14 @@ package com.att.cadi.client;
 import java.security.Principal;
 
 import com.att.cadi.SecuritySetter;
-import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.principal.BasicPrincipal;
 import com.att.cadi.principal.TGuardPrincipal;
 import com.att.cadi.principal.TrustPrincipal;
 
 public abstract class AbsTransferSS<CLIENT> implements SecuritySetter<CLIENT> {
 	protected String value;
-	protected SecurityInfo<CLIENT> securityInfo;
+	protected SecurityInfoC<CLIENT> securityInfo;
 	protected SecuritySetter<CLIENT> defSS;
 	private Principal principal;
 
@@ -22,7 +22,7 @@ public abstract class AbsTransferSS<CLIENT> implements SecuritySetter<CLIENT> {
 		init(principal, app);
 	}
 
-	public AbsTransferSS(Principal principal, String app, SecurityInfo<CLIENT> si) {
+	public AbsTransferSS(Principal principal, String app, SecurityInfoC<CLIENT> si) {
 		init(principal,app);
 		securityInfo = si;
 		this.defSS = si.defSS;

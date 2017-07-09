@@ -13,9 +13,9 @@ import javax.net.ssl.SSLHandshakeException;
 
 import com.att.cadi.Access;
 import com.att.cadi.Access.Level;
+import com.att.cadi.Locator.Item;
 import com.att.cadi.CadiException;
 import com.att.cadi.Locator;
-import com.att.cadi.Locator.Item;
 import com.att.cadi.LocatorException;
 import com.att.cadi.SecuritySetter;
 import com.att.cadi.client.Rcli;
@@ -25,10 +25,10 @@ import com.att.inno.env.APIException;
 public class HMangr {
 	private String apiVersion;
 	private int readTimeout, connectionTimeout;
-	public final Locator loc;
+	public final Locator<URI> loc;
 	private Access access;
 	
-	public HMangr(Access access, Locator loc) {
+	public HMangr(Access access, Locator<URI> loc) {
 		readTimeout = 10000;
 		connectionTimeout=3000;
 		this.loc = loc;
@@ -67,8 +67,12 @@ public class HMangr {
 					URI uri=loc.get(item);
 					if(uri==null) {
 						loc.invalidate(retryable.item());
-						retryable.item(loc.next(retryable.item()));
-						continue;
+						if(loc.hasItems()) {
+							retryable.item(loc.next(retryable.item()));
+							continue;
+						} else {
+							throw new LocatorException("No clients available for " + loc.toString());
+						}
 					}
 					client = new HRcli(this, uri,item,ss)
 						.connectionTimeout(connectionTimeout)
@@ -95,8 +99,8 @@ public class HMangr {
 								throw new CadiException("Connection refused, no more available connections to try");
 							}
 						} else if(ec instanceof SSLHandshakeException) {
-							access.log(Level.ERROR,ec.getMessage());
-							retry = false;
+							retryable.item(null);
+							throw e;
 						} else if(ec instanceof SocketException) {
 							if("java.net.SocketException: Connection reset".equals(ec.getMessage())) {
 								access.log(Level.ERROR, ec.getMessage(), " can mean Certificate Expiration or TLS Protocol issues");
@@ -124,6 +128,9 @@ public class HMangr {
 	
 	
 	public<RET> RET best(SecuritySetter<HttpURLConnection> ss, Retryable<RET> retryable) throws LocatorException, CadiException, APIException {
+		if(loc==null) {
+			throw new LocatorException("No Locator Configured");
+		}
 		retryable.item(loc.best());
 		return same(ss,retryable);
 	}

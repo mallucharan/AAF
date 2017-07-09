@@ -139,4 +139,10 @@ public class DNSLocator implements Locator {
 
 		private int cnt;
 	}
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

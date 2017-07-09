@@ -34,15 +34,19 @@ public final class AAFTransmutate implements Transmutate<Principal> {
 			|| p instanceof ConfigPrincipal) { 
 			return p;
 		} else { 
-			String name = p.getName();
+			
+			final String name = p.getName();
 			final int idx = name.indexOf('@');
+			String shortName;
 			if(idx>0) { // strip off any domain
-				name = name.substring(0,idx); 
+				shortName = name.substring(0,idx); 
+			} else {
+				shortName = name;
 			}
 
 			// Check for ATTUID specs before creating CSP_T
-			return pattern.matcher(name).matches()?
-				new CSP_T(name):
+			return pattern.matcher(shortName).matches()?
+				new CSP_T(name): // Note: use REAL name, short name for CSP_T
 				null;
 		}
 	}

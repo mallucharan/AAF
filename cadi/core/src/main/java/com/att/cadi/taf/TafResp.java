@@ -27,7 +27,8 @@ public interface TafResp {
 		// Therefore, I have changed this to indicate what HAS happened, with should accommodate 
 		// both positions.  JG 10/18/2012
 //		public static final int HTTP_REDIRECT_INVOKED = 11;
-		HTTP_REDIRECT_INVOKED};
+		HTTP_REDIRECT_INVOKED,
+		HAS_PROCESSED};
 	
 	/**
 	 * Basic success check

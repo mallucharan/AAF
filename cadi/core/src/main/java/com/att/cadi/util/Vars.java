@@ -3,8 +3,21 @@
  *******************************************************************************/
 package com.att.cadi.util;
 
+import java.util.List;
 
 public class Vars {
+	/**
+	 * Simplified Conversion based on typical use of getting AT&T style RESTful Error Messages
+	 * @param text
+	 * @param vars
+	 * @return
+	 */
+	public static String convert(final String text, final List<String> vars) {
+		String[] array = new String[vars.size()];
+		StringBuilder sb = new StringBuilder();
+		convert(sb,text,vars.toArray(array));
+		return sb.toString();
+	}
 	/**
 	 * Convert a format string with "%s" into AT&T RESTful Error %1 %2 (number) format
 	 * If "holder" is passed in, it is built with full Message extracted (typically for Logging)

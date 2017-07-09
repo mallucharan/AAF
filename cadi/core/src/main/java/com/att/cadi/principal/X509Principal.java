@@ -4,14 +4,13 @@
 package com.att.cadi.principal;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.regex.Pattern;
 
 import com.att.cadi.GetCred;
 
-public class X509Principal implements Principal, GetCred {
+public class X509Principal extends BearerPrincipal implements GetCred {
 	private static final Pattern pattern = Pattern.compile("[a-zA-Z0-9]*\\@[a-zA-Z0-9.]*");
 	private byte[] content;  
 	private X509Certificate cert;
@@ -55,7 +54,7 @@ public class X509Principal implements Principal, GetCred {
 	}
 	
 	public String toString() {
-		return "Cert Authentication for " + cert.toString();
+		return "X509 Authentication for " + name;
 	}
 
 

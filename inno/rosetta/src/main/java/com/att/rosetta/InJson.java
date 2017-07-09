@@ -43,17 +43,18 @@ public class InJson implements Parse<Reader, State> {
 							parsed.isString=true;
 							inQuotes = true;
 						}
-	
 					} else { // Not a Quote
 						if(inQuotes) {
 							if(c=='\\') {
 								if(escaped) {
+									sb.append("\\\\");
 									escaped = false;
 								} else {
 									escaped = true;
 								}
+							} else {
+								sb.append(c);
 							}
-							sb.append(c);
 						} else {
 							switch(c) {
 								case ':':

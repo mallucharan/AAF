@@ -178,7 +178,10 @@ public class BasicEnv extends StoreImpl implements EnvJAXB, TransCreate<TransJAX
 				yes = true;
 			}
 			if(yes) {
-				props.put(key, getProperty(key));
+				String value = getProperty(key);
+				if(value!=null) {
+					props.put(key, value);
+				}
 			}
 		}
 		return props;
@@ -191,7 +194,7 @@ public class BasicEnv extends StoreImpl implements EnvJAXB, TransCreate<TransJAX
 
 	// @Override
 	public String setProperty(String key, String value) {
-		put(staticSlot(key),value);
+		put(staticSlot(key),value==null?null:value.trim());
 		return value;
 	}
 	
@@ -279,7 +282,7 @@ public class BasicEnv extends StoreImpl implements EnvJAXB, TransCreate<TransJAX
 	public void loadPropFiles(String tag, ClassLoader classloader) throws IOException {
 		String propfiles = getProperty(tag);
 		if(propfiles!=null) {
-			for(String pf : Split.splitTrim(';', propfiles)) {
+			for(String pf : Split.splitTrim(File.pathSeparatorChar, propfiles)) {
 				InputStream is = classloader==null?null:classloader.getResourceAsStream(pf);
 				if(is==null) {
 					File f = new File(pf);
@@ -311,21 +314,4 @@ public class BasicEnv extends StoreImpl implements EnvJAXB, TransCreate<TransJAX
 			}
 		}
 	}
-
-
-//	// @Override
-//	public <T> IOStringifier<T> newStringifier(Class<?>... classes)	throws APIException {
-//		return new JAXBStringifier<T>(classes);
-//	}
-//
-//	// @Override
-//	public <T> IOObjectifier<T> newObjectifier(Class<?>... classes) throws APIException {
-//		return new JAXBObjectifier<T>(classes);
-//	}
-//
-//	// @Override
-//	public <T> IOObjectifier<T> newObjectifier(Schema schema, Class<?>... classes) throws APIException {
-//		return new JAXBObjectifier<T>(schema, classes);
-//	}
-//
 }

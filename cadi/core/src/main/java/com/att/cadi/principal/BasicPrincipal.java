@@ -7,19 +7,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.Principal;
 import java.util.Date;
 
 import com.att.cadi.BasicCred;
 import com.att.cadi.GetCred;
 import com.att.cadi.Symm;
 
-public class BasicPrincipal implements GetCred, Principal {
+public class BasicPrincipal extends BearerPrincipal implements GetCred {
 	private static byte[] basic = "Basic ".getBytes();
 
 	private String name = null;
 	private String shortName = null;
-	private byte[] cred = null;  
+	private byte[] cred = null;
 	
 	private long created;
 

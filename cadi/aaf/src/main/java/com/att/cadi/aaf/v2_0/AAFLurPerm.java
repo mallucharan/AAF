@@ -20,7 +20,9 @@ import com.att.cadi.aaf.AAFPermission;
 import com.att.cadi.client.Future;
 import com.att.cadi.client.Rcli;
 import com.att.cadi.client.Retryable;
+import com.att.cadi.lur.LocalPermission;
 import com.att.inno.env.APIException;
+import com.att.inno.env.util.Split;
 
 import aaf.v2_0.Perm;
 import aaf.v2_0.Perms;
@@ -102,9 +104,12 @@ public class AAFLurPerm extends AbsAAFLur<AAFPermission> {
 					if(fp.get(aaf.timeout)) {
 						success[0]=true;
 						Map<String, Permission> newMap = user.newMap();
+						boolean willLog = aaf.access.willLog(Level.DEBUG);
 						for(Perm perm : fp.value.getPerm()) {
 							user.add(newMap,new AAFPermission(perm.getType(),perm.getInstance(),perm.getAction()));
-							aaf.access.log(Level.DEBUG, name,"has '",perm.getType(),'|',perm.getInstance(),'|',perm.getAction(),'\'');
+							if(willLog) {
+								aaf.access.log(Level.DEBUG, name,"has '",perm.getType(),'|',perm.getInstance(),'|',perm.getAction(),'\'');
+							}
 						}
 						user.setMap(newMap);
 						user.renewPerm();
@@ -124,10 +129,11 @@ public class AAFLurPerm extends AbsAAFLur<AAFPermission> {
 			});
 		} catch (Exception e) {
 			aaf.access.log(e,"Calling","/authz/perms/user/"+name);
+			success[0]=false;
 			return null;
 		} finally {
 			float time = (System.nanoTime()-start)/1000000f;
-			aaf.access.log(Level.AUDIT, success[0]?"Loaded":"Load Failure",name,"from AAF in",time,"ms");
+			aaf.access.log(Level.INFO, success[0]?"Loaded":"Load Failure",name,"from AAF in",time,"ms");
 		}
 	}
 
@@ -136,7 +142,7 @@ public class AAFLurPerm extends AbsAAFLur<AAFPermission> {
 		long start = System.nanoTime();
 		boolean success = false;
 		try {
-			Future<Perms> fp = aaf.client(AAFCon.AAF_VERSION).read(
+			Future<Perms> fp = aaf.client(AAFCon.AAF_LATEST_VERSION).read(
 					"/authz/perms/user/"+name,
 					aaf.permsDF
 					);
@@ -145,9 +151,12 @@ public class AAFLurPerm extends AbsAAFLur<AAFPermission> {
 			if(fp.get(aaf.timeout)) {
 				success = true;
 				Map<String,Permission> newMap = user.newMap(); 
+				boolean willLog = aaf.access.willLog(Level.DEBUG);
 				for(Perm perm : fp.value.getPerm()) {
 					user.add(newMap, new AAFPermission(perm.getType(),perm.getInstance(),perm.getAction()));
-					aaf.access.log(Level.DEBUG, name,"has",perm.getType(),perm.getInstance(),perm.getAction());
+					if(willLog) {
+						aaf.access.log(Level.DEBUG, name,"has",perm.getType(),perm.getInstance(),perm.getAction());
+					}
 				}
 				user.renewPerm();
 				return Resp.REVALIDATED;
@@ -176,4 +185,17 @@ public class AAFLurPerm extends AbsAAFLur<AAFPermission> {
 		return pond instanceof AAFPermission;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.att.cadi.Lur#createPerm(java.lang.String)
+	 */
+	@Override
+	public Permission createPerm(String p) {
+		String[] params = Split.split('|', p);
+		if(params.length==3) {
+			return new AAFPermission(params[0],params[1],params[2]);
+		} else {
+			return new LocalPermission(p);
+		}
+	}
+	
 }

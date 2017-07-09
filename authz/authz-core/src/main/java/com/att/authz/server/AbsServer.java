@@ -19,6 +19,7 @@ import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
 import com.att.cadi.CadiException;
 import com.att.cadi.LocatorException;
+//import com.att.cadi.PropAccess;
 import com.att.cadi.aaf.v2_0.AAFConHttp;
 import com.att.cadi.client.Rcli;
 import com.att.cadi.client.Retryable;
@@ -37,7 +38,7 @@ public abstract class AbsServer extends RServlet<AuthzTrans> {
     	this.env = env;
     	this.app = app;
     	if(env.getProperty(Config.AAF_URL)!=null) {
-    		aafCon = new AAFConHttp(env);
+    		//aafCon = new AAFConHttp(env);
     	}
     }
     
@@ -94,7 +95,7 @@ public abstract class AbsServer extends RServlet<AuthzTrans> {
 			// Convert CADI properties and Encrypted Passwords for these two properties (if exist) 
 			// to DME2 Readable.  Further, Discovery Props are loaded to System if missing.
 			// May be causing client errors
-			Config.cadiToDME2(env,props);
+			//Config.cadiToDME2(env,props);
 			env.init().log("DME2 ServiceName: " + env.getProperty("DMEServiceName","unknown"));
 
 			// Construct with Env

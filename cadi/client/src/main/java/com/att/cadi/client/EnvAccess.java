@@ -83,6 +83,19 @@ public class EnvAccess implements Access {
 	}
 
 	@Override
+	public void log(Exception e, Object... elements) {
+		env.error().log(e,elements);
+	}
+
+	@Override
+	public void printf(Level level, String fmt, Object... elements) {
+		if(willLog(level)) {
+			log(level,String.format(fmt, elements));
+		}
+	}
+
+
+	@Override
 	public boolean willLog(Level level) {
 		switch(level) {
 			case AUDIT:
@@ -102,11 +115,6 @@ public class EnvAccess implements Access {
 		}
 	}
 
-
-	@Override
-	public void log(Exception e, Object... elements) {
-		env.error().log(e,elements);
-	}
 
 	@Override
 	public void setLogLevel(Level level) {

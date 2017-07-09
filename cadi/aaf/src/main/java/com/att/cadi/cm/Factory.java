@@ -47,8 +47,8 @@ import com.att.inno.env.TimeTaken;
 import com.att.inno.env.Trans;
 
 public class Factory {
+	private static final String PRIVATE_KEY_HEADER = "PRIVATE KEY";
 	public static final String KEY_ALGO = "RSA";
-	private static final String PRIVATE_KEY_HEADER = KEY_ALGO + " PRIVATE KEY";
 	public static final String SIG_ALGO = "SHA256withRSA";
 
 	public  static final int KEY_LENGTH = 2048;
@@ -157,8 +157,8 @@ public class Factory {
 		}
 	}
 
-
 	public static String toString(Trans trans, PrivateKey pk) throws IOException {
+//		PKCS8EncodedKeySpec pemContents = new PKCS8EncodedKeySpec(pk.getEncoded());
 		trans.debug().log("Private Key to String");
 		return textBuilder(PRIVATE_KEY_HEADER,pk.getEncoded());
 	}
@@ -184,11 +184,11 @@ public class Factory {
 		return textBuilder("PUBLIC KEY",pk.getEncoded());
 	}
 
-	public static Collection<? extends Certificate> toX509Certificate(Trans trans, String x509) throws CertificateException {
-		return toX509Certificate(trans, x509.getBytes());
+	public static Collection<? extends Certificate> toX509Certificate(String x509) throws CertificateException {
+		return toX509Certificate(x509.getBytes());
 	}
 	
-	public static Collection<? extends Certificate> toX509Certificate(Trans trans, List<String> x509s) throws CertificateException {
+	public static Collection<? extends Certificate> toX509Certificate(List<String> x509s) throws CertificateException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			for(String x509 : x509s) {
@@ -197,17 +197,17 @@ public class Factory {
 		} catch (IOException e) {
 			throw new CertificateException(e);
 		}
-		return toX509Certificate(trans, new ByteArrayInputStream(baos.toByteArray()));
+		return toX509Certificate(new ByteArrayInputStream(baos.toByteArray()));
 	}
 
-	public static Collection<? extends Certificate> toX509Certificate(Trans trans, byte[] x509) throws CertificateException {
+	public static Collection<? extends Certificate> toX509Certificate(byte[] x509) throws CertificateException {
 		return certificateFactory.generateCertificates(new ByteArrayInputStream(x509));
 	}
 
 	public static Collection<? extends Certificate> toX509Certificate(Trans trans, File file) throws CertificateException, FileNotFoundException {
 		FileInputStream fis = new FileInputStream(file);
 		try {
-			return toX509Certificate(trans,fis);
+			return toX509Certificate(fis);
 		} finally {
 			try {
 				fis.close();
@@ -217,16 +217,9 @@ public class Factory {
 		}
 	}
 
-	public static Collection<? extends Certificate> toX509Certificate(Trans trans, InputStream is) throws CertificateException {
-		TimeTaken tt=trans.start("Reconstitute Certificates", Env.SUB);
-		try {
-			return certificateFactory.generateCertificates(is);
-		} finally {
-			tt.done();
-		}
+	public static Collection<? extends Certificate> toX509Certificate(InputStream is) throws CertificateException {
+		return certificateFactory.generateCertificates(is);
 	}
-
-	
 
 	public static String toString(Trans trans, Certificate cert) throws IOException, CertException {
 		if(trans.debug().isLoggable()) {
@@ -418,10 +411,19 @@ public class Factory {
 		}
 	}
 
-	// TODO IMPLEMENT!
-	public static void getSignature(byte[] signed) {
-		// TODO Auto-generated method stub
-		
+	public static String toSignatureString(byte[] signed) throws IOException {
+		return textBuilder("SIGNATURE", signed);
 	}
 
+	public static boolean verify(Trans trans, byte[] bytes, byte[] signature, PublicKey pk) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		TimeTaken tt = trans.start("Verify Data", Env.SUB);
+		try {
+			Signature sig = Signature.getInstance(SIG_ALGO);
+			sig.initVerify(pk);
+			sig.update(bytes);
+			return sig.verify(signature);
+		} finally {
+			tt.done();
+		}	
+	}
 }

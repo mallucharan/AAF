@@ -33,6 +33,7 @@ public class DRcli extends Rcli<DME2Client> {
 	// Can be more efficient if tied to manager, apparently.  Can pass in null.
 	DME2Manager manager=null;
 	private SecuritySetter<DME2Client> ss;
+	private boolean isProxy;
 	
 	public DRcli(URI uri, SecuritySetter<DME2Client> secSet) {
 		this.uri = uri;
@@ -58,7 +59,9 @@ public class DRcli extends Rcli<DME2Client> {
 	 */
 	protected EClient<DME2Client> client() throws CadiException {
 		try {
-			return new DEClient(manager,getSecuritySetter(),uri,readTimeout);
+			DEClient dc = new DEClient(manager,getSecuritySetter(),uri,readTimeout);
+			dc.setProxy(isProxy);
+			return dc;
 		} catch (DME2Exception e) {
 			throw new CadiException(e);
 		}
@@ -110,6 +113,10 @@ public class DRcli extends Rcli<DME2Client> {
 	@Override
 	public SecuritySetter<DME2Client> getSecuritySetter() {
 		return ss;
+	}
+
+	public void setProxy(boolean isProxy) {
+		this.isProxy = isProxy;
 	}
 
 }

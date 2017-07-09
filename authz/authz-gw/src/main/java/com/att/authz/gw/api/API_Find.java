@@ -50,7 +50,7 @@ public class API_Find {
 						);
 					if(loc.hasItems()) {
 						Item item = loc.best();
-						URI uri = loc.get(item);
+						URI uri = (URI) loc.get(item);
 						String redirectURL = uri.toString() + '/' + pathParam(req,":path");
 						trans.warn().log("Redirect to",redirectURL);
 						resp.sendRedirect(redirectURL);

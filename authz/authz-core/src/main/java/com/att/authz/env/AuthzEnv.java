@@ -30,7 +30,8 @@ import com.att.rosetta.env.RosettaEnv;
  */
 public class AuthzEnv extends RosettaEnv implements Access {
 	private long[] times = new long[20];
-	int idx = 0;
+	private int idx = 0;
+	//private int mask = Level.AUDIT.maskOf();
 
 	public AuthzEnv() {
 		super();
@@ -98,32 +99,38 @@ public class AuthzEnv extends RosettaEnv implements Access {
 		Properties props = new Properties();
 		props.load(is);
 		for(Entry<Object, Object> es : props.entrySet()) {
-			 put(staticSlot(es.getKey().toString()),es.getValue());
+			String key = es.getKey().toString();
+			String value =es.getValue().toString();
+			put(staticSlot(key==null?null:key.trim()),value==null?null:value.trim());
 		}
 	}
 
 	@Override
 	public void log(Level lvl, Object... msgs) {
-		switch(lvl) {
-			case INIT:
-				init().log(msgs);
-				break;
-			case AUDIT:
-				audit().log(msgs);
-				break;
-			case DEBUG:
-				debug().log(msgs);
-				break;
-			case ERROR:
-				error().log(msgs);
-				break;
-			case INFO:
-				info().log(msgs);
-				break;
-			case WARN:
-				warn().log(msgs);
-				break;
-		}
+//		if(lvl.inMask(mask)) {
+//			switch(lvl) {
+//				case INIT:
+//					init().log(msgs);
+//					break;
+//				case AUDIT:
+//					audit().log(msgs);
+//					break;
+//				case DEBUG:
+//					debug().log(msgs);
+//					break;
+//				case ERROR:
+//					error().log(msgs);
+//					break;
+//				case INFO:
+//					info().log(msgs);
+//					break;
+//				case WARN:
+//					warn().log(msgs);
+//					break;
+//				case NONE:
+//					break;
+//			}
+//		}
 	}
 
 	@Override
@@ -131,31 +138,44 @@ public class AuthzEnv extends RosettaEnv implements Access {
 		error().log(e,msgs);
 	}
 
+	//@Override
+	public void printf(Level level, String fmt, Object... elements) {
+		if(willLog(level)) {
+			log(level,String.format(fmt, elements));
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see com.att.cadi.Access#willLog(com.att.cadi.Access.Level)
 	 */
 	@Override
 	public boolean willLog(Level level) {
-		switch(level) {
-			case INIT:
-				return init().isLoggable();
-			case AUDIT:
-				audit().isLoggable();
-			case DEBUG:
-				debug().isLoggable();
-			case ERROR:
-				error().isLoggable();
-			case INFO:
-				info().isLoggable();
-			case WARN:
-				warn().isLoggable();
-		}
+		
+//		if(level.inMask(mask)) {
+//			switch(level) {
+//				case INIT:
+//					return init().isLoggable();
+//				case AUDIT:
+//					return audit().isLoggable();
+//				case DEBUG:
+//					return debug().isLoggable();
+//				case ERROR:
+//					return error().isLoggable();
+//				case INFO:
+//					return info().isLoggable();
+//				case WARN:
+//					return warn().isLoggable();
+//				case NONE:
+//					return false;
+//			}
+//		}
 		return false;
 	}
 
 	@Override
 	public void setLogLevel(Level level) {
-		// unused
+		super.debug().isLoggable();
+		//level.toggle(mask);
 	}
 
 	public void setLog4JNames(String path, String root, String _service, String _audit, String _init, String _trace) throws APIException {

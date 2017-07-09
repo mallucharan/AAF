@@ -24,7 +24,6 @@ import com.att.cadi.aaf.v2_0.AAFAuthn;
 import com.att.cadi.aaf.v2_0.AAFCon;
 import com.att.cadi.aaf.v2_0.AbsAAFLur;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.Get;
 import com.att.cadi.lur.EpiLur;
 import com.att.cadi.lur.LocalLur;
 import com.att.cadi.aaf.AAFPermission;
@@ -103,20 +102,19 @@ public abstract class AAFBase {
 					access = new SLF4JAccess(initial);
 				}
 				props_ok = true;
-				Get getter = new Get.AccessGet(access);
-				if((perm_type = getter.get("cass_group_name",null,true))==null) {
+				if((perm_type = Config.logProp(access, "cass_group_name",null))==null) {
 					props_ok=false;
 				} else {
 					perm_type = perm_type + ".cass";
 				}
 				
-				if((cluster_name = getter.get("cass_cluster_name",null,true))==null) {
+				if((cluster_name = Config.logProp(access,"cass_cluster_name",null))==null) {
 					if((cluster_name = DatabaseDescriptor.getClusterName())==null) {
 						props_ok=false;
 					}
 				}
 
-				if((default_realm = getter.get(Config.AAF_DEFAULT_REALM, null,true))==null) {
+				if((default_realm = Config.logProp(access, Config.AAF_DEFAULT_REALM, null))==null) {
 					props_ok=false;
 				}
 				
@@ -125,7 +123,7 @@ public abstract class AAFBase {
 				}
 
 				// AAFLur has pool of DME clients as needed, and Caches Client lookups
-				Lur lur = Config.configLur(getter, access);
+				Lur lur = Config.configLur(access);
 				// Loop through to find AAFLur out of possible Lurs, to reuse AAFCon
 				if(lur instanceof EpiLur) {
 					EpiLur elur = (EpiLur)lur;

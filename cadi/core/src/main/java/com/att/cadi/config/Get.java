@@ -21,30 +21,22 @@ public interface Get {
 		private Class<?> bc;
 		private Class<?>[] params;
 		private Object[] args;
-		private Access ca;
 		
-		public Bean(Object bean, Access access) {
+		public Bean(Object bean) {
 			this.bean = bean;
 			bc = bean.getClass();
 			params = new Class<?>[0]; // note, this will allow to go out of scope after config
 			args = new Object[0];
-			ca = access;
 		}
 		
 		public String get(String name, String def, boolean print) {
-			String str = ca.getProperty(name, def);
-			if(str==null) {
-				String gname = "get"+Character.toUpperCase(name.charAt(0))+name.substring(1);
-				try {
-					Method meth = bc.getMethod(gname, params);
-					Object obj = meth.invoke(bean, args);
-					str = obj==null?null:obj.toString(); // easy string convert... 
-				} catch (Exception e) {
-				}
-			}
-			// Try Properties loaded third
-			if(str==null) {
-				str = ca.getProperty(name,null);
+			String str = null;
+			String gname = "get"+Character.toUpperCase(name.charAt(0))+name.substring(1);
+			try {
+				Method meth = bc.getMethod(gname, params);
+				Object obj = meth.invoke(bean, args);
+				str = obj==null?null:obj.toString(); // easy string convert... 
+			} catch (Exception e) {
 			}
 			
 			// Take def if nothing else

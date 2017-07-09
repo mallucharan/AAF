@@ -9,16 +9,17 @@ import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
 
-import com.att.cadi.Access;
 import com.att.cadi.CadiException;
 import com.att.cadi.Locator;
+import com.att.cadi.Locator.Item;
 import com.att.cadi.LocatorException;
+import com.att.cadi.PropAccess;
 import com.att.cadi.SecuritySetter;
 import com.att.cadi.client.AbsTransferSS;
 import com.att.cadi.client.Rcli;
 import com.att.cadi.client.Retryable;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.http.HBasicAuthSS;
 import com.att.cadi.http.HMangr;
 import com.att.cadi.http.HRcli;
@@ -30,34 +31,44 @@ import com.att.inno.env.APIException;
 public class AAFConHttp extends AAFCon<HttpURLConnection> {
 	private final HMangr hman;
 
-	public AAFConHttp(Access access) throws CadiException, GeneralSecurityException, IOException {
-		super(access,Config.AAF_URL,new SecurityInfo<HttpURLConnection>(access));
+	public AAFConHttp(PropAccess access) throws CadiException, GeneralSecurityException, IOException {
+		super(access,Config.AAF_URL,new SecurityInfoC<HttpURLConnection>(access));
 		hman = new HMangr(access,Config.loadLocator(access, access.getProperty(Config.AAF_URL,null)));
 	}
 
-	public AAFConHttp(Access access, String tag) throws CadiException, GeneralSecurityException, IOException {
-		super(access,tag,new SecurityInfo<HttpURLConnection>(access));
+	public AAFConHttp(PropAccess access, String tag) throws CadiException, GeneralSecurityException, IOException {
+		super(access,tag,new SecurityInfoC<HttpURLConnection>(access));
 		hman = new HMangr(access,Config.loadLocator(access, access.getProperty(tag,null)));
 	}
 
-	public AAFConHttp(Access access, String urlTag, SecurityInfo<HttpURLConnection> si) throws CadiException {
+	public AAFConHttp(PropAccess access, String urlTag, SecurityInfoC<HttpURLConnection> si) throws CadiException {
 		super(access,urlTag,si);
 		hman = new HMangr(access,Config.loadLocator(access, access.getProperty(urlTag,null)));
 	}
 
-	public AAFConHttp(Access access, Locator locator) throws CadiException, GeneralSecurityException, IOException {
-		super(access,Config.AAF_URL,new SecurityInfo<HttpURLConnection>(access));
+	public AAFConHttp(PropAccess access, Locator<URI> locator) throws CadiException, GeneralSecurityException, IOException {
+		super(access,Config.AAF_URL,new SecurityInfoC<HttpURLConnection>(access));
 		hman = new HMangr(access,locator);
 	}
 
-	public AAFConHttp(Access access, Locator locator, SecurityInfo<HttpURLConnection> si) throws CadiException {
+	public AAFConHttp(PropAccess access, Locator<URI> locator, SecurityInfoC<HttpURLConnection> si) throws CadiException {
 		super(access,Config.AAF_URL,si);
 		hman = new HMangr(access,locator);
 	}
 
-	public AAFConHttp(Access access, Locator locator, SecurityInfo<HttpURLConnection> si, String tag) throws CadiException {
+	public AAFConHttp(PropAccess access, Locator<URI> locator, SecurityInfoC<HttpURLConnection> si, String tag) throws CadiException {
 		super(access,tag,si);
 		hman = new HMangr(access, locator);
+	}
+	
+	private AAFConHttp(AAFCon<HttpURLConnection> aafcon, String url) {
+		super(aafcon);
+		hman = new HMangr(aafcon.access,Config.loadLocator(access, url));
+	}
+
+	@Override
+	public AAFCon<HttpURLConnection> clone(String url) {
+		return new AAFConHttp(this,url);
 	}
 
 	/* (non-Javadoc)
@@ -73,7 +84,7 @@ public class AAFConHttp extends AAFCon<HttpURLConnection> {
 			}
 		}
 		try {
-			return set(new HBasicAuthSS(user,password,si));
+			return new HBasicAuthSS(user,password,si);
 		} catch (IOException e) {
 			throw new CadiException("Error creating HBasicAuthSS",e);
 		}
@@ -92,6 +103,9 @@ public class AAFConHttp extends AAFCon<HttpURLConnection> {
 	 */
 	@Override
 	protected Rcli<HttpURLConnection> rclient(URI ignoredURI, SecuritySetter<HttpURLConnection> ss) throws CadiException {
+		if(hman.loc==null) {
+			throw new CadiException("No Locator set in AAFConHttp"); 
+		}
 		try {
 			return new HRcli(hman, hman.loc.best() ,ss);
 		} catch (Exception e) {
@@ -123,6 +137,31 @@ public class AAFConHttp extends AAFCon<HttpURLConnection> {
 	@Override
 	public <RET> RET best(Retryable<RET> retryable) throws LocatorException, CadiException, APIException {
 		return hman.best(ss, (Retryable<RET>)retryable);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.att.cadi.aaf.v2_0.AAFCon#initURI()
+	 */
+	@Override
+	protected URI initURI() {
+		try {
+			Item item = hman.loc.best();
+			if(item!=null) {
+				return hman.loc.get(item);
+			}
+		} catch (LocatorException e) {
+			access.log(e, "Error in AAFConHttp obtaining initial URI");
+		}
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.att.cadi.aaf.v2_0.AAFCon#setInitURI(java.lang.String)
+	 */
+	@Override
+	protected void setInitURI(String uriString) throws CadiException {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

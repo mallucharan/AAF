@@ -3,6 +3,7 @@
  *******************************************************************************/
 package com.att.cadi.taf;
 
+import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ import com.att.cadi.TrustChecker;
 public class HttpEpiTaf implements HttpTaf {
 	private HttpTaf[] tafs;
 	private Access access;
-	private Locator locator;
+	private Locator<URI> locator;
 	private TrustChecker trustChecker;
 	
 	/**
@@ -39,7 +40,7 @@ public class HttpEpiTaf implements HttpTaf {
 	 * @param tafs
 	 * @throws CadiException
 	 */
-	public HttpEpiTaf(Access access, Locator locator, TrustChecker tc, HttpTaf ... tafs) throws CadiException{
+	public HttpEpiTaf(Access access, Locator<URI> locator, TrustChecker tc, HttpTaf ... tafs) throws CadiException{
 		this.tafs = tafs;
 		this.access = access;
 		this.locator = locator;
@@ -97,7 +98,9 @@ public class HttpEpiTaf implements HttpTaf {
 		// If No TAFs configured, at this point.  It is safer at this point to be "not validated", 
 		// rather than "let it go"
 		// Note: if exists, there will always be more than 0 entries, according to above code
-		if(redirectables==null)return firstTry!=null?firstTry:NullTafResp.singleton();
+		if(redirectables==null) {
+			return firstTry!=null?firstTry:NullTafResp.singleton();
+		}
 		
 		// If there is one Tryable entry then return it
 		if(redirectables.size()>1) {

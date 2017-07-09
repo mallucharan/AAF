@@ -16,6 +16,7 @@ import com.att.authz.env.AuthzEnv;
 import com.att.cadi.client.Future;
 import com.att.cadi.config.Config;
 import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.dme2.DME2Locator;
 import com.att.cadi.http.HBasicAuthSS;
 import com.att.cadi.http.HMangr;
@@ -43,7 +44,7 @@ public class AbsServiceTest {
 		System.out.println(loc.get(loc.best()));
 		hman = new HMangr(env,loc);
 		
-		SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(env);
+		SecurityInfoC<HttpURLConnection> si = new SecurityInfoC<HttpURLConnection>(env);
 		basicAuthSS = new HBasicAuthSS(
 				"???", 
 				env.decrypt("enc:???",false), 

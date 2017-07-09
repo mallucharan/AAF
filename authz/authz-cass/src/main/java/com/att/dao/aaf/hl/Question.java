@@ -13,7 +13,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -97,7 +96,7 @@ public class Question {
 	static Slot PERMS;
 
 	private static Set<String> specialLog = null;
-	public static final Random random = new SecureRandom();
+	public static final SecureRandom random = new SecureRandom();
 	private static long traceID = random.nextLong();
 	private static final String SPECIAL_LOG_SLOT = "SPECIAL_LOG_SLOT";
 	private static Slot specialLogSlot = null;

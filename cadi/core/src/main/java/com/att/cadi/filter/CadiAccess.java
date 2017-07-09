@@ -215,4 +215,10 @@ public class CadiAccess implements Access {
 			: encrypted;
 	}
 
+	@Override
+	public void printf(Level level, String fmt, Object[] elements) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

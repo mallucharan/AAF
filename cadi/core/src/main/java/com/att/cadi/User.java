@@ -57,6 +57,15 @@ public final class User<PERM extends Permission> {
 	public boolean noPerms() {
 		return perms==null || perms.values().size()==0; 
 	}
+	
+	public void setNoPerms() {
+		perms=NULL_MAP;
+		permExpires = System.currentTimeMillis() + interval;
+	}
+
+	public boolean permsUnloaded() {
+		return perms==null;
+	}
 
 	public synchronized void incCount() {
 		++count;

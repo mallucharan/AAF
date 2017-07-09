@@ -7,14 +7,14 @@ import java.security.Principal;
 
 import com.att.cadi.UserChain;
 
-public class TrustPrincipal implements Principal, UserChain {
+public class TrustPrincipal extends BearerPrincipal implements UserChain {
 	private final String name;
 	private final Principal original;
 	private String userChain;
 	
-	public TrustPrincipal(Principal actual, String asName) {
+	public TrustPrincipal(final Principal actual, final String asName) {
 		this.original = actual;
-		name = asName;
+		name = asName.trim();
 		if(actual instanceof UserChain) {
 			UserChain uc = (UserChain)actual;
 			userChain = uc.userChain();

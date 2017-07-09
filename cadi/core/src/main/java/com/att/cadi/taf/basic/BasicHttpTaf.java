@@ -71,29 +71,25 @@ public class BasicHttpTaf implements HttpTaf {
 					return new BasicHttpTafResp(access,bp,bp.getName()+" authenticated by password",RESP.IS_AUTHENTICATED,resp,realm,false);
 				} else {
 					//TODO may need timed retries in a given time period
-					return new BasicHttpTafResp(access,null,buildMsg(bp,req,"User/Pass combo invalid"), 
+					return new BasicHttpTafResp(access,null,buildMsg(bp,req,"User/Pass combo invalid for ",bc.getUser()), 
 							RESP.TRY_AUTHENTICATING,resp,realm,true);
 				}
 			}
 		}
 		// Get User/Password from Authorization Header value
-		String auth = req.getHeader("Authorization");
-		if(auth == null) {
-			return new BasicHttpTafResp(access,null,"Requesting HTTP Basic Authorization",RESP.TRY_AUTHENTICATING,resp,realm,false);
-		} else if(auth.startsWith("Basic ")) {
-			if(warn&&!req.isSecure())access.log(Level.WARN,"WARNING! BasicAuth has been used over an insecure channel");
+		String authz = req.getHeader("Authorization");
+		if(authz != null && authz.startsWith("Basic ")) {
+			if(warn&&!req.isSecure()) {
+				access.log(Level.WARN,"WARNING! BasicAuth has been used over an insecure channel");
+			}
 			try {
-				
-				CachedBasicPrincipal ba = new CachedBasicPrincipal(this,auth,realm,timeToLive);
+				CachedBasicPrincipal ba = new CachedBasicPrincipal(this,authz,realm,timeToLive);
 				if(DenialOfServiceTaf.isDeniedID(ba.getName())!=null) {
 					return DenialOfServiceTaf.respDenyID(access,ba.getName());
 				}
 
 				// ONLY FOR Last Ditch DEBUGGING... 
 				// access.log(Level.WARN,ba.getName() + ":" + new String(ba.getCred()));
-				System.out.println("value of rbac ---------1------------------++++++++++++++++++++++++++++++++++++++++++++++" +rbac.getClass().getName());
-				System.out.println("value of ba.getName() -------------2-----------------++++++++++++++++++++++++++++++++++++++++++++++" +ba.getName() + " " + ba.getCred());
-				
 				if(rbac.validate(ba.getName(), Type.PASSWORD, ba.getCred())) {
 					return new BasicHttpTafResp(access,ba, ba.getName()+" authenticated by BasicAuth password",RESP.IS_AUTHENTICATED,resp,realm,false);
 				} else {
@@ -106,10 +102,8 @@ public class BasicHttpTaf implements HttpTaf {
 				access.log(Level.INFO,msg);
 				return new BasicHttpTafResp(access,null,msg, RESP.TRY_AUTHENTICATING, resp, realm,true);
 			}
-		} else {
-			String msg = buildMsg(null, req, "Authorization Header not for Basic");
-			return new BasicHttpTafResp(access, null, msg, RESP.TRY_AUTHENTICATING, resp, realm, true);
 		}
+		return new BasicHttpTafResp(access,null,"Requesting HTTP Basic Authorization",RESP.TRY_AUTHENTICATING,resp,realm,false);
 	}
 	
 	protected String buildMsg(Principal pr, HttpServletRequest req, Object ... msg) {

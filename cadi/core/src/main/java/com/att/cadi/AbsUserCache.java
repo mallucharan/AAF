@@ -104,19 +104,14 @@ public abstract class AbsUserCache<PERM extends Permission> {
 	}
 
 	protected User<PERM> getUser(String userName) {
-		
-		System.out.println("In getUser() ----- 02 ----- method ++++++++++++++++++++++++++++++");
 		User<PERM> u = userMap.get(userName);
-
 		if(u!=null) {
-			System.out.println(" u!=null check block  ----04----+++++++++++++++++++++++++++++");
 			u.incCount();
 		}
 		return u;
 	}
 	
 	protected User<PERM> getUser(Principal principal) {
-	//	System.out.println("In getUser() ---- 01 ---- method Impl +++++++++++++++++++++++++++++++++++++++" +getUser(principal.getName()).toString());
 		return getUser(principal.getName()); 
 	}
 	
@@ -271,18 +266,19 @@ public abstract class AbsUserCache<PERM extends Permission> {
 							}
 	
 						} else {
-							remove(user);
-							++count;
+							if(user.permExpired()) {
+								remove(user);
+								++count;
+							}
 						}
 				}
 				
 				// Clean out Misses
-				int miss;
-				miss = missMap.keySet().size();
-				if(miss>0) {
-					ArrayList<String> keys = new ArrayList<String>(miss);
+				int missTotal = missMap.keySet().size();
+				int miss = 0;
+				if(missTotal>0) {
+					ArrayList<String> keys = new ArrayList<String>(missTotal);
 					keys.addAll(missMap.keySet());
-					miss=0;
 					for(String key : keys) {
 						Miss m = missMap.get(key);
 						if(m!=null && m.timestamp<System.currentTimeMillis()) {
@@ -297,7 +293,7 @@ public abstract class AbsUserCache<PERM extends Permission> {
 				
 				if(count+renewed+miss>0) {
 					access.log(Level.INFO, (lur==null?"Cache":lur.getClass().getSimpleName()), "removed",count,
-						"and renewed",renewed,"expired Permissions out of", total,"and removed", miss, "password misses");
+						"and renewed",renewed,"expired Permissions out of", total,"and removed", miss, "password misses out of",missTotal);
 				}
 	
 				// If High (total) is reached during this period, increase the number of expired services removed for next time.
@@ -367,6 +363,27 @@ public abstract class AbsUserCache<PERM extends Permission> {
 			}
 			return false;
 		}
-
 	}
+	
+	/**
+	 * Report on state
+	 */
+	public String toString() {
+		return getClass().getSimpleName() + 
+				" Cache:\n  Users Cached: " +
+				userMap.size() +
+				"\n  Misses Saved: " +
+				missMap.size() +
+				'\n';
+				
+	}
+
+	public void clear(Principal p, StringBuilder sb) {
+		sb.append(toString());
+		userMap.clear();
+		missMap.clear();
+		access.log(Level.AUDIT, p.getName(),"has cleared User Cache in",getClass().getSimpleName());
+		sb.append("Now cleared\n");
+	}
+
 }

@@ -28,4 +28,10 @@ public class BasicAuth implements SecuritySetter<DME2Client> {
 		return user;
 	}
 
+	//@Override
+	public int setLastResponse(int respCode) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 }

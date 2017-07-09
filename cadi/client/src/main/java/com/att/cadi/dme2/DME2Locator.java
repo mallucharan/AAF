@@ -320,4 +320,10 @@ public class DME2Locator implements Locator {
 //		refresh();
 		return null;
 	}
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

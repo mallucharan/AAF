@@ -11,7 +11,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import com.att.cadi.Locator.Item;
-import com.att.cadi.client.PropertyLocator;
+import com.att.cadi.locator.PropertyLocator;
 
 public class JU_PropertyLocator {
 

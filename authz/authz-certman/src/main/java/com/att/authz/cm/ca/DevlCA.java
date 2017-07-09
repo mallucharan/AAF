@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Random;
+import java.security.SecureRandom;
 
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -57,7 +57,7 @@ public class DevlCA extends CA {
 	private X509Certificate caCert;
 	private final RSAPrivateKey caKey;
 	private final X500Name issuer;
-	private final Random random = new Random();
+	private final SecureRandom random = new SecureRandom();
 	private byte[] serialish = new byte[24];
 
 	public DevlCA(Trans trans, String name, String dirString) throws IOException, CertException {
@@ -82,7 +82,7 @@ public class DevlCA extends CA {
 			byte[] bytes = Factory.decode(ca);
 			Collection<? extends Certificate> certs;
 			try {
-				certs = Factory.toX509Certificate(trans, bytes);
+				certs = Factory.toX509Certificate(bytes);
 			} catch (CertificateException e) {
 				throw new CertException(e);
 			}

@@ -9,35 +9,35 @@ import java.net.HttpURLConnection;
 import javax.net.ssl.HttpsURLConnection;
 
 import com.att.cadi.Access;
+import com.att.cadi.CadiException;
 import com.att.cadi.client.AbsBasicAuth;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.SecurityInfo;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.principal.BasicPrincipal;
 
 public class HBasicAuthSS extends AbsBasicAuth<HttpURLConnection> {
-	public HBasicAuthSS(Access access, SecurityInfo<HttpURLConnection> si) throws IOException {
+	public HBasicAuthSS(Access access, SecurityInfoC<HttpURLConnection> si) throws IOException {
 		super(access.getProperty(Config.AAF_MECHID, null),
 				access.decrypt(access.getProperty(Config.AAF_MECHPASS, null), false),
 				si);
 	}
 
-
-	public HBasicAuthSS(String user, String pass, SecurityInfo<HttpURLConnection> si) throws IOException {
+	public HBasicAuthSS(String user, String pass, SecurityInfoC<HttpURLConnection> si) throws IOException {
 		super(user,pass,si);
 	}
 
-	public HBasicAuthSS(String user, String pass, SecurityInfo<HttpURLConnection> si, boolean asDefault) throws IOException {
+	public HBasicAuthSS(String user, String pass, SecurityInfoC<HttpURLConnection> si, boolean asDefault) throws IOException {
 		super(user,pass,si);
 		if(asDefault) {
 			si.set(this);
 		}
 	}
 	
-	public HBasicAuthSS(BasicPrincipal bp, SecurityInfo<HttpURLConnection> si) throws IOException {
+	public HBasicAuthSS(BasicPrincipal bp, SecurityInfoC<HttpURLConnection> si) throws IOException {
 		super(bp.getName(),new String(bp.getCred()),si);
 	}
 	
-	public HBasicAuthSS(BasicPrincipal bp, SecurityInfo<HttpURLConnection> si, boolean asDefault) throws IOException {
+	public HBasicAuthSS(BasicPrincipal bp, SecurityInfoC<HttpURLConnection> si, boolean asDefault) throws IOException {
 		super(bp.getName(),new String(bp.getCred()),si);
 		if(asDefault) {
 			si.set(this);
@@ -45,8 +45,11 @@ public class HBasicAuthSS extends AbsBasicAuth<HttpURLConnection> {
 	}
 
 	@Override
-	public void setSecurity(HttpURLConnection huc) {
-		huc.setRequestProperty("Authorization" , headValue);
+	public void setSecurity(HttpURLConnection huc) throws CadiException {
+		if(isDenied()) {
+			throw new CadiException(REPEAT_OFFENDER);
+		}
+		huc.addRequestProperty("Authorization" , headValue);
 		if(securityInfo!=null && huc instanceof HttpsURLConnection) {
 			securityInfo.setSocketFactoryOn((HttpsURLConnection)huc);
 		}

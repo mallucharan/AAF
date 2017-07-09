@@ -11,10 +11,11 @@ import com.att.xgen.CacheGen;
 import com.att.xgen.Code;
 
 public class HTMLCacheGen extends CacheGen<HTMLGen> {
+	protected int flags;
 
-	public HTMLCacheGen(int flags, Code<HTMLGen> code) throws APIException,
-			IOException {
+	public HTMLCacheGen(int flags, Code<HTMLGen> code) throws APIException,IOException {
 		super(flags, code);
+		this.flags = flags;
 	}
 
 	@Override
@@ -34,4 +35,7 @@ public class HTMLCacheGen extends CacheGen<HTMLGen> {
 		return hg;
 	}
 
+	protected HTMLGen clone(Writer w) {
+		return create(flags,w);
+	}
 }

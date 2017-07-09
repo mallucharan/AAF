@@ -52,7 +52,7 @@ CREATE TABLE ns (
 CREATE INDEX ns_parent on ns(parent);
   
 
-// Oct 2015, not performant.  Made Owner and Attrib first class Roles, jg1555
+// Oct 2015, not performant.  Made Owner and Attrib first class Roles,
 // April, 2015.  Originally, the plan was to utilize Cassandra 2.1.2, however, other team's preferences were to remain at current levels.
 // Therefore, we are taking the separate table approach.  (coder Jeremiah Rohwedder)
 // We had dropped this by making first class objects of Responsible (Owner) and Admin.  We need this again to mark namespaces

@@ -63,4 +63,10 @@ public class TestAccess implements Access {
 		return true;
 	}
 
+	@Override
+	public void printf(Level level, String fmt, Object[] elements) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

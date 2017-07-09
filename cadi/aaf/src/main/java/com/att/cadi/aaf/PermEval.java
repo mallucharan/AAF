@@ -26,7 +26,12 @@ public class PermEval {
 	 * Changing this will break existing users, like Cassandra.  9-4-2015
 	 */
 	 public static boolean evalInstance(String sInst, String pInst) {
-		  if(ASTERIX.equals(sInst)) return true;			// If Server's String is "*", then it accepts every Instance
+		 if(sInst==null || pInst == null) {
+			 return false;
+		 }
+		  if(ASTERIX.equals(sInst)) {
+			  return true;			// If Server's String is "*", then it accepts every Instance
+		  }
 		  char firstChar = pInst.charAt(0);
 		  char startChar = firstChar==ALT_START_INST_KEY_CHAR?ALT_START_INST_KEY_CHAR:START_INST_KEY_CHAR;
 		  switch(pInst.charAt(0)) {  						// First char

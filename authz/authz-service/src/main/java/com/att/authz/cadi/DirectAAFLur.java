@@ -135,4 +135,16 @@ public class DirectAAFLur implements Lur {
 		//TODO
 		return true;
 	}
+
+	@Override
+	public Permission createPerm(String p) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void clear(Principal p, StringBuilder report) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -5,7 +5,7 @@
  * Slot.java
  *
  * Created on: Dec 5, 2008
- * Created by: jg1555
+ * Created by:
  *
  * (c) 2008 SBC Knowledge Ventures, L.P. All rights reserved.
  ******************************************************************* 

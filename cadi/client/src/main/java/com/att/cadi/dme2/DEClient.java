@@ -26,11 +26,14 @@ import com.att.rosetta.env.RosettaDF;
 public class DEClient implements EClient<DME2Client> {
 	private DME2Client client;
 	private DME2RestfulHandler replyHandler;
-	private com.att.cadi.client.EClient.Transfer payload;
+	private EClient.Transfer payload;
+	private boolean isProxy;
+	private SecuritySetter<DME2Client> ss;
 	
 	public DEClient(DME2Manager manager, SecuritySetter<DME2Client> ss, URI uri, long timeout) throws DME2Exception, CadiException {
 		client = new DME2Client(manager,uri,timeout);
 		client.setAllowAllHttpReturnCodes(true);
+		this.ss = ss;
 		ss.setSecurity(client);
 		replyHandler = new DME2RestfulHandler(Rcli.BLANK);
 		client.setReplyHandler(replyHandler);
@@ -43,13 +46,15 @@ public class DEClient implements EClient<DME2Client> {
 
 	/**
 	 * DME2 can't handle having QueryParams on the URL line, but it is the most natural way, so...
+	 * 
+	 * Also, DME2 can't handle "/proxy" as part of Context in the main URI line, so we add it when we see authz-gw to "isProxy"
 	 */
 	public void setPathInfo(String pathinfo) {
 		int qp = pathinfo.indexOf('?');
 		if(qp<0) {
-			client.setContext(pathinfo);
+			client.setContext(isProxy?("/proxy"+pathinfo):pathinfo);
 		} else {
-			client.setContext(pathinfo.substring(0,qp));
+			client.setContext(isProxy?("/proxy"+pathinfo.substring(0,qp)):pathinfo.substring(0,qp));
 			client.setQueryParams(pathinfo.substring(qp+1));
 		}
 	}
@@ -102,13 +107,19 @@ public class DEClient implements EClient<DME2Client> {
 			this.reply = reply;
 		}
 		
-		public boolean get(int timeout) throws CadiException {
+		protected boolean evalInfo() throws APIException{
+			//return info.getCode()==200;
+			return true;
+		};
+		
+		public final boolean get(int timeout) throws CadiException {
 			try {
 				info = reply.getResponse(timeout);
+				ss.setLastResponse(info.getCode());
+				return evalInfo();
 			} catch (Exception e) {
 				throw new CadiException(e);
 			}
-			return info.getCode()==200;
 		}
 
 		@Override
@@ -131,12 +142,8 @@ public class DEClient implements EClient<DME2Client> {
 	@Override
 	public <T> Future<T> futureCreate(Class<T> t) {
 		return new DFuture<T>(replyHandler) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					info = reply.getResponse(timeout);
-				} catch (Exception e) {
-					throw new CadiException(e);
-				}
+			public boolean evalInfo() throws APIException {
+				
 				return info.getCode()==201;
 			}
 		};
@@ -146,12 +153,7 @@ public class DEClient implements EClient<DME2Client> {
 	@Override
 	public Future<String> futureReadString() {
 		return new DFuture<String>(replyHandler) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					info = reply.getResponse(timeout);
-				} catch (Exception e) {
-					throw new CadiException(e);
-				}
+			public boolean evalInfo() throws APIException {
 				if(info.getCode()==200) {
 					value = info.getBody();
 					return true;
@@ -164,17 +166,12 @@ public class DEClient implements EClient<DME2Client> {
 	@Override
 	public<T> Future<T> futureRead(final RosettaDF<T> df, final Data.TYPE type) {
 		return new DFuture<T>(replyHandler) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					info = reply.getResponse(timeout);
-					if(info.getCode()==200) {
-						value = df.newData().in(type).load(info.getBody()).asObject();
-						return true;
-					}
-					return false;
-				} catch (Exception e) {
-					throw new CadiException(e);
+			public boolean evalInfo() throws APIException {
+				if(info.getCode()==200) {
+					value = df.newData().in(type).load(info.getBody()).asObject();
+					return true;
 				}
+				return false;
 			}
 		};
 	}
@@ -182,12 +179,7 @@ public class DEClient implements EClient<DME2Client> {
 	@Override
 	public <T> Future<T> future(final T t) {
 		return new DFuture<T>(replyHandler) {
-			public boolean get(int timeout) throws CadiException {
-				try {
-					info = reply.getResponse(timeout);
-				} catch (Exception e) {
-					throw new CadiException(e);
-				}
+			public boolean evalInfo() {
 				if(info.getCode()==200) {
 					value = t;
 					return true;
@@ -201,6 +193,10 @@ public class DEClient implements EClient<DME2Client> {
 	public Future<Void> future(HttpServletResponse resp,int expected) throws APIException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public void setProxy(boolean isProxy) {
+		this.isProxy=isProxy;
 	}
 
 	

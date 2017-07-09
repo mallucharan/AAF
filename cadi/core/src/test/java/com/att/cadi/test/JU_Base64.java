@@ -9,8 +9,7 @@ import static org.junit.Assert.assertNotSame;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Random;
-
+import java.security.SecureRandom;
 import org.junit.Test;
 
 import com.att.cadi.Symm;
@@ -105,7 +104,7 @@ public class JU_Base64 {
 		System.out.println("Avg:   " + ms/ITER + "ms");
 
 		char[] manipulate = symmetric.toCharArray();
-		int spot = new Random().nextInt(manipulate.length);
+		int spot = new SecureRandom().nextInt(manipulate.length);
 		manipulate[spot]|=0xFF;
 		String newsymmetric = new String(manipulate);
 		assertNotSame(newsymmetric, symmetric);

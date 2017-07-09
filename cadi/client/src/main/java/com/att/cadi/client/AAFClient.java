@@ -10,10 +10,10 @@ import java.util.Map;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.cadi.Access;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.SecurityInfo;
-import com.att.cadi.dme2.DME2Locator;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.http.HBasicAuthSS;
 import com.att.cadi.http.HMangr;
+import com.att.cadi.locator.DME2Locator;
 import com.att.inno.env.APIException;
 import com.att.rosetta.env.RosettaDF;
 import com.att.rosetta.env.RosettaEnv;
@@ -30,7 +30,7 @@ public class AAFClient {
 		String user = access.getProperty(Config.AAF_MECHID,null);
 		String password = access.decrypt(access.getProperty(Config.AAF_MECHPASS,null), true);
 		
-		SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(access);
+		SecurityInfoC<HttpURLConnection> si = new SecurityInfoC<HttpURLConnection>(access);
 		DME2Manager dm = new DME2Manager("APIclient DME2Manager", System.getProperties());
 		DME2Locator loc = new DME2Locator(access, dm, access.getProperty(Config.AAF_URL,null));
 
@@ -46,7 +46,7 @@ public class AAFClient {
 		String user = access.getProperty(Config.AAF_MECHID,null);
 		String password = access.decrypt(access.getProperty(Config.AAF_MECHPASS,null), true);
 		
-		SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(access);
+		SecurityInfoC<HttpURLConnection> si = new SecurityInfoC<HttpURLConnection>(access);
 		DME2Locator loc = new DME2Locator(access, dm, access.getProperty(Config.AAF_URL,null));
 
 		int TIMEOUT = Integer.parseInt(access.getProperty(Config.AAF_CONN_TIMEOUT, "30000"));

@@ -36,4 +36,10 @@ public class DME2ClientSS implements SecuritySetter<DME2Client> {
 	public String getID() {
 		return user;
 	}
+
+	@Override
+	public int setLastResponse(int respCode) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

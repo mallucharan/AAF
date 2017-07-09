@@ -35,7 +35,7 @@ public class LoginPageTafResp extends AbsTafResp {
 		return RESP.TRY_AUTHENTICATING;
 	}
 	
-	public static TafResp create(Access access, Locator locator, final HttpServletResponse resp, List<Redirectable> redir) {
+	public static TafResp create(Access access, Locator<URI> locator, final HttpServletResponse resp, List<Redirectable> redir) {
 		if(locator!=null) {
 			try {
 				Item item = locator.best();

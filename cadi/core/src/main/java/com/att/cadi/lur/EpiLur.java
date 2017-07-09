@@ -42,6 +42,9 @@ public final class EpiLur implements Lur {
 	}
 
 	public boolean fish(Principal bait, Permission pond) {
+		if(pond==null) {
+			return false;
+		}
 		boolean rv = false;
 		Lur lur;
 		for(int i=0;!rv && i<lurs.length;++i) {
@@ -115,5 +118,31 @@ public final class EpiLur implements Lur {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public Permission createPerm(String p) {
+		return new LocalPermission(p);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.att.cadi.Lur#clear(java.security.Principal, java.lang.StringBuilder)
+	 */
+	@Override
+	public void clear(Principal p, StringBuilder report) {
+		for(Lur lur : lurs) {
+			lur.clear(p, report);
+		}
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for(Lur lur : lurs) {
+			sb.append(lur.getClass().getSimpleName());
+			sb.append(": Report\n");
+			sb.append(lur.toString());
+			sb.append('\n');
+		}
+		return sb.toString();
 	}
 }

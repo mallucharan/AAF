@@ -3,6 +3,7 @@
  *******************************************************************************/
 package com.att.cadi;
 
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -93,6 +94,27 @@ public class Hash {
 		 return sb.toString();
 	}
 
+	/**
+	 * Convenience Function: Hash from String to String Hex representation
+	 * 
+	 * @param input
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static String hashSHA256asStringHex(String input, int salt) throws NoSuchAlgorithmException {
+		byte[] in = input.getBytes();
+		ByteBuffer bb = ByteBuffer.allocate(Integer.SIZE + in.length);
+		bb.putInt(salt);
+		bb.put(input.getBytes());
+		byte[] output = Hash.hashSHA256(bb.array());
+		StringBuilder sb = new StringBuilder("0x");
+		 for (byte b : output) {
+		    sb.append(hexDigit[(b >> 4) & 0x0f]);
+		    sb.append(hexDigit[b & 0x0f]);
+		 }
+		 return sb.toString();
+	}
+	
 	/**
 	 * Compare two byte arrays for equivalency
 	 * @param ba1

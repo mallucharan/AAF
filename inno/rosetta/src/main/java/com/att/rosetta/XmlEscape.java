@@ -42,6 +42,12 @@ public class XmlEscape {
 		}
 	}
 	
+	public static void xmlEscape(StringBuilder sb, int chr) {
+		sb.append('&');
+		sb.append(intMap.get(chr));
+		sb.append(';');
+	}
+	
 	public static String convert(StringBuilder insb) {
 		int idx, ch;
 		StringBuilder sb=null;

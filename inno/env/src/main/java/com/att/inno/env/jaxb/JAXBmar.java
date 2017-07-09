@@ -5,9 +5,9 @@
  * JAXBumar.java
  *
  * Created on: Apr 10, 2009
- * Created by: jg1555
+ * Created by: 
  *
- * Revamped to do away with ThreadLocal 5/27/2011, JG1555
+ * Revamped to do away with ThreadLocal 5/27/2011,
  *
  * (c) 2009 SBC Knowledge Ventures, L.P. All rights reserved.
  ******************************************************************* 

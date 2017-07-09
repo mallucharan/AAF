@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Properties;
 
 import com.att.aft.dme2.api.DME2Exception;
+//import com.att.aft.dme2.api.DME2FilterHolder;
+//import com.att.aft.dme2.api.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
 import com.att.aft.dme2.api.DME2ServerProperties;
@@ -19,10 +21,10 @@ import com.att.aft.dme2.api.DME2ServiceHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.util.DME2ServletHolder;
+//import com.att.aft.dme2.api.DME2ServletHolder;
 import com.att.authz.cadi.DirectAAFLur;
 import com.att.authz.cadi.DirectAAFUserPass;
 import com.att.authz.cadi.DirectCertIdentity;
-import com.att.authz.common.Define;
 import com.att.authz.env.AuthzEnv;
 import com.att.authz.env.AuthzTrans;
 import com.att.authz.env.AuthzTransFilter;
@@ -47,11 +49,11 @@ import com.att.cadi.LocatorException;
 import com.att.cadi.SecuritySetter;
 import com.att.cadi.aaf.v2_0.AAFTrustChecker;
 import com.att.cadi.config.Config;
-import com.att.cadi.config.SecurityInfo;
-import com.att.cadi.dme2.DME2Locator;
+import com.att.cadi.config.SecurityInfoC;
 import com.att.cadi.http.HBasicAuthSS;
 import com.att.cadi.http.HMangr;
 import com.att.cadi.http.HX509SS;
+import com.att.cadi.locator.DME2Locator;
 import com.att.cadi.taf.basic.BasicHttpTaf;
 import com.att.cssa.rserv.HttpMethods;
 import com.att.dao.CassAccess;
@@ -59,6 +61,7 @@ import com.att.dao.aaf.cass.CacheInfoDAO;
 import com.att.dao.aaf.hl.Question;
 import com.att.inno.env.APIException;
 import com.att.inno.env.Data;
+import com.att.inno.env.Env;
 import com.datastax.driver.core.Cluster;
 
 public class AuthAPI extends AbsServer {
@@ -197,6 +200,8 @@ public class AuthAPI extends AbsServer {
 	 */
 	public void startDME2(Properties props) throws Exception {
         DME2Manager dme2 = new DME2Manager("AuthzServiceDME2Manager",props);
+       	String s = dme2.getStringProp(Config.AFT_DME2_SSL_INCLUDE_PROTOCOLS,null);
+       	env.init().log("DME2 Service TLS Protocols are set to",(s==null?"DME2 Default":s));
         
         DME2ServiceHolder svcHolder;
         List<DME2ServletHolder> slist = new ArrayList<DME2ServletHolder>();
@@ -217,6 +222,10 @@ public class AuthAPI extends AbsServer {
 	        		);
 	        
 	        List<DME2FilterHolder> flist = new ArrayList<DME2FilterHolder>();
+
+	        // Add DME2 Metrics
+	        // DME2 removed the Metrics Filter in 2.8.8.5
+        	// flist.add(new DME2FilterHolder(new DME2MetricsFilter(serviceName),"/*",edlist));
 	        
 	        // Note: Need CADI to fill out User for AuthTransFilter... so it's first
     		// Make sure there is no AAF TAF configured for Filters
@@ -225,14 +234,12 @@ public class AuthAPI extends AbsServer {
 	        flist.add(
 		        new DME2FilterHolder(
 		        	new AuthzTransFilter(env, null /* no connection to AAF... it is AAF */,
-		        		new AAFTrustChecker(
-		        				env.getProperty(Config.CADI_TRUST_PROP, Config.CADI_USER_CHAIN),
-		        				Define.ROOT_NS + ".mechid|"+Define.ROOT_COMPANY+"|trust"),
-		        	        	new DirectAAFLur(env,question), // Note, this will be assigned by AuthzTransFilter to TrustChecker
-			        	new BasicHttpTaf(env, directAAFUserPass,
-			        			DOMAIN,Long.parseLong(env.getProperty(Config.AAF_CLEAN_INTERVAL, Config.AAF_CLEAN_INTERVAL_DEF)),
-			        			false
-			        			) // Add specialty Direct TAF
+	        			new AAFTrustChecker((Env)env),
+	        	        new DirectAAFLur(env,question), // Note, this will be assigned by AuthzTransFilter to TrustChecker
+	        	        new BasicHttpTaf(env, directAAFUserPass,
+		        			DOMAIN,Long.parseLong(env.getProperty(Config.AAF_CLEAN_INTERVAL, Config.AAF_CLEAN_INTERVAL_DEF)),
+		        			false
+		        			) // Add specialty Direct TAF
 		        		),
 		        	"/*", edlist));
 
@@ -240,28 +247,27 @@ public class AuthAPI extends AbsServer {
 	        svcHolder.setServletHolders(slist);
 	        
 	        DME2Server dme2svr = dme2.getServer();
-	        DME2ServerProperties dsprops = dme2svr.getServerProperties();
 	        
 	        String hostname = env.getProperty("HOSTNAME",null);
 	        if(hostname!=null) {
-	        	dsprops.setHostname(hostname);
+	        	//dme2svr.setHostname(hostname);
 	        	hostname=null;
 	        }
-	        dsprops.setGracefulShutdownTimeMs(5000);
+	       // dme2svr.setGracefulShutdownTimeMs(5000);
 	
 	        env.init().log("Starting AAF Jetty/DME2 server...");
 	        dme2svr.start();
 	        try {
 //	        	if(env.getProperty("NO_REGISTER",null)!=null)
 	        	dme2.bindService(svcHolder);
-	        	env.init().log("DME2 is available as HTTP"+(dsprops.isSslEnable()?"/S":""),"on port:",dsprops.getPort());
+	        	//env.init().log("DME2 is available as HTTPS on port:",dme2svr.getPort());
 	        	
 	        	// Start CacheInfo Listener
 	        	HMangr hman = new HMangr(env, new DME2Locator(env, dme2,"https://DME2RESOLVE/"+serviceName,true /*remove self from cache*/));
 				SecuritySetter<HttpURLConnection> ss;
 				
-//				InetAddress ip = InetAddress.getByName(dsprops.getHostname());
-				SecurityInfo<HttpURLConnection> si = new SecurityInfo<HttpURLConnection>(env);
+//				InetAddress ip = InetAddress.getByName(dme2svr.getHostname());
+				SecurityInfoC<HttpURLConnection> si = new SecurityInfoC<HttpURLConnection>(env);
 				String mechID;
 				if((mechID=env.getProperty(Config.AAF_MECHID))==null) {
 					String alias = env.getProperty(Config.CADI_ALIAS);
@@ -282,7 +288,7 @@ public class AuthAPI extends AbsServer {
 				}
 				
 				//TODO Reenable Cache Update
-	    		CacheInfoDAO.startUpdate(env, hman, ss, dsprops.getHostname(), dsprops.getPort());
+	    		//CacheInfoDAO.startUpdate(env, hman, ss, dme2svr.getHostname(), dme2svr.getPort());
 	        	
 	            while(true) { // Per DME2 Examples...
 	            	Thread.sleep(5000);

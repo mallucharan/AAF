@@ -5,6 +5,8 @@ package com.att.cadi;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,6 +15,9 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Random;
+
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 
 import com.att.cadi.Access.Level;
 import com.att.cadi.config.Config;
@@ -53,7 +58,8 @@ public class Symm {
 	private final String encoding;
 	private final Convert convert;
 	private final boolean endEquals;
-	private AES aes = null;  // only initialized from File, and only if needed for Passwords
+	//Note: AES Encryption is not Thread Safe.  It is Synchronized
+	private static AES aes = null;  // only initialized from File, and only if needed for Passwords
 	
 	/**
 	 * This is the standard base64 Key Set.
@@ -131,6 +137,10 @@ public class Symm {
 		}
 	}
 	
+	public Symm copy(int lines) {
+		return new Symm(codeset,lines,encoding,endEquals);
+	}
+	
 	// Only used by keygen, which is intentionally randomized. Therefore, always use unordered
 	private  Symm(char[] codeset, Symm parent) {
 		this.codeset = codeset;
@@ -139,11 +149,34 @@ public class Symm {
 		encoding = parent.encoding;
 		convert = new Unordered(codeset);
 	}
-	
-	public Symm copy(int lines) {
-		return new Symm(codeset,lines,encoding,endEquals);
+
+	/**
+	 * Obtain the base64() behavior of this class, for use in standard BASIC AUTH mechanism, etc.
+	 * @return
+	 */
+	@Deprecated
+	public static final Symm base64() {
+		return base64;
 	}
-	
+
+	/**
+	 * Obtain the base64() behavior of this class, for use in standard BASIC AUTH mechanism, etc.  
+	 * No Line Splitting
+	 * @return
+	 */
+	@Deprecated
+	public static final Symm base64noSplit() {
+		return base64noSplit;
+	}
+
+	/**
+	 * Obtain the base64 "URL" behavior of this class, for use in File Names, etc. (no "/")
+	 */
+	@Deprecated
+	public static final Symm base64url() {
+		return base64url;
+	}
+
 	/**
 	 * Obtain a special ASCII version for Scripting, with base set of base64url use in File Names, etc. (no "/")
 	 */
@@ -151,7 +184,10 @@ public class Symm {
 		return encrypt;
 	}
 
-	synchronized private AES getAES() throws IOException {
+	/*
+	 *  Note: AES Encryption is NOT thread-safe.  Must surround entire use with synchronized
+	 */
+	private synchronized void exec(AESExec exec) throws IOException {
 		if(aes == null) {
 			try {
 				byte[] bytes = new byte[AES.AES_KEY_SIZE/8];
@@ -164,7 +200,11 @@ public class Symm {
 				throw new IOException(e);
 			}
 		}
-		return aes;
+		exec.exec(aes);
+	}
+	
+	private static interface AESExec {
+		public void exec(AES aes) throws IOException;
 	}
 	
     public byte[] encode(byte[] toEncrypt) throws IOException {
@@ -423,6 +463,29 @@ public class Symm {
 		return baos.toByteArray();
    }
    
+   // A class allowing us to be less predictable about significant digits (i.e. not picking them up from the
+   // beginning, and not picking them up in an ordered row.  Gives a nice 2048 with no visible patterns.
+   private class Obtain {
+	   private int last;
+	   private int skip;
+	   private int length;
+	   private byte[] key;
+  
+	   private Obtain(Symm b64, byte[] key) {
+		   skip = Math.abs(key[key.length-13]%key.length);
+		   if((key.length&0x1) == (skip&0x1)) { // if both are odd or both are even
+			   ++skip;
+		   }
+		   length = b64.codeset.length;
+		   last = 17+length%59; // never start at beginning
+		   this.key = key;
+	   }
+	   
+	   private int next() {
+  		   return Math.abs(key[(++last*skip)%key.length])%length;
+	   }
+   };
+  
    /**
     * Obtain a Symm from "keyfile" (Config.KEYFILE) property
     * 
@@ -435,11 +498,10 @@ public class Symm {
 		String keyfile = access.getProperty(Config.CADI_KEYFILE,null);
 		if(keyfile!=null) {
 			File file = new File(keyfile);
-			String filename;
 			try {
-				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",filename=file.getCanonicalPath());
+				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",file.getCanonicalPath());
 			} catch (IOException e1) {
-				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",filename=file.getAbsolutePath());
+				access.log(Level.INIT, Config.CADI_KEYFILE,"points to",file.getAbsolutePath());
 			}
 			if(file.exists()) {
 				try {
@@ -455,8 +517,6 @@ public class Symm {
 				} catch (IOException e) {
 					access.log(e, "Cannot load keyfile");
 				}
-			} else {
-				access.log(Level.ERROR, filename, "does not exist.");
 			}
 		}
 		return symm;
@@ -466,7 +526,7 @@ public class Symm {
    */
   public Symm obtain() throws IOException {
 		byte inkey[] = new byte[0x800];
-		new Random().nextBytes(inkey);
+		new SecureRandom().nextBytes(inkey);
 		return obtain(inkey);
   }
   
@@ -540,9 +600,58 @@ public class Symm {
    * @param os
    * @throws IOException
    */
-  public void enpass(String password, OutputStream os) throws IOException {
-	 encode(password,os);
-  }
+  public void enpass(final String password, final OutputStream os) throws IOException {
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		DataOutputStream dos = new DataOutputStream(baos);
+		byte[] bytes = password.getBytes();
+		if(this.getClass().getSimpleName().startsWith("base64")) { // don't expose randomization
+			dos.write(bytes);
+		} else {
+			
+			Random r = new SecureRandom();
+			int start = 0;
+			byte b;
+			for(int i=0;i<3;++i) {
+				dos.writeByte(b=(byte)r.nextInt());
+				start+=Math.abs(b);
+			}
+			start%=0x7;
+			for(int i=0;i<start;++i) {
+				dos.writeByte(r.nextInt());
+			}
+			dos.writeInt((int)System.currentTimeMillis());
+			int minlength = Math.min(0x9,bytes.length);
+			dos.writeByte(minlength); // expect truncation
+			if(bytes.length<0x9) {
+				for(int i=0;i<bytes.length;++i) {
+					dos.writeByte(r.nextInt());
+					dos.writeByte(bytes[i]);
+				}
+				// make sure it's long enough
+				for(int i=bytes.length;i<0x9;++i) {
+					dos.writeByte(r.nextInt());
+				}
+			} else {
+				dos.write(bytes);
+			}
+		}
+		
+		// 7/21/2016 jg add AES Encryption to the mix
+		exec(new AESExec() {
+			@Override
+			public void exec(AES aes) throws IOException {
+				CipherInputStream cis = aes.inputStream(new ByteArrayInputStream(baos.toByteArray()), true);
+				try {
+					encode(cis,os);
+				} finally {
+					os.flush();
+					cis.close();
+				}
+			}
+		});
+		synchronized(ENC) {
+		}
+	}
 
   /**
    * Decrypt a password into a String
@@ -554,9 +663,7 @@ public class Symm {
    * @throws IOException
    */
   public String depass(String password) throws IOException {
-	  if(password==null) {
-		  return null;
-	  }
+	  if(password==null)return null;
 	  ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	  depass(password,baos);
 	  return new String(baos.toByteArray());
@@ -572,10 +679,47 @@ public class Symm {
    * @return
    * @throws IOException
    */
-  public long depass(String password, OutputStream os) throws IOException {
-	 ByteArrayInputStream bais = new ByteArrayInputStream(password.startsWith(ENC)?password.substring(4).getBytes():password.getBytes());
-	 decode(bais, os);
-	 return 0;
+  public long depass(final String password, final OutputStream os) throws IOException {
+	  int offset = password.startsWith(ENC)?4:0;
+	  final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	  final ByteArrayInputStream bais =  new ByteArrayInputStream(password.getBytes(),offset,password.length()-offset);
+	  exec(new AESExec() {
+		@Override
+		public void exec(AES aes) throws IOException {
+			  CipherOutputStream cos = aes.outputStream(baos, false);
+			  decode(bais,cos);
+			  cos.close(); // flush
+		}
+	  });
+	  byte[] bytes = baos.toByteArray();
+	  DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes));
+	  long time;
+	  if(this.getClass().getSimpleName().startsWith("base64")) { // don't expose randomization
+		  os.write(bytes);
+		  time = 0L;
+	  } else {
+		  int start=0;
+		  for(int i=0;i<3;++i) {
+			  start+=Math.abs(dis.readByte());
+		  }
+		  start%=0x7;
+		  for(int i=0;i<start;++i) {
+			  dis.readByte();
+		  }
+		  time = (dis.readInt() & 0xFFFF)|(System.currentTimeMillis()&0xFFFF0000);
+		  int minlength = dis.readByte();
+		  if(minlength<0x9){
+			DataOutputStream dos = new DataOutputStream(os);
+			for(int i=0;i<minlength;++i) {
+				dis.readByte();
+				dos.writeByte(dis.readByte());
+			}
+		  } else {
+			  int pre =((Byte.SIZE*3+Integer.SIZE+Byte.SIZE)/Byte.SIZE)+start; 
+			  os.write(bytes, pre, bytes.length-pre);
+		  }
+	  }
+	  return time;
   }
 
   public static String randomGen(int numBytes) {
@@ -591,27 +735,14 @@ public class Symm {
 	    }
 	    return sb.toString();
   }
-  
-  private class Obtain {
-	private ByteArrayInputStream bais;
-	private int skip = 0;
-	private int length;
-	  
-	  public Obtain(byte[] data, int length) {
-		  bais = new ByteArrayInputStream(data);
-		  this.length = length;
-	  }
-	  
-	  private int next() {
-		  if(bais.available()<Integer.SIZE/Byte.SIZE) {
-			  bais.reset();
-			  bais.skip(++skip); // add an offset so it is not the same
-		  }
-		  return bais.read()%length;
-	  }
-  };
+  // Internal mechanism for helping to randomize placement of characters within a Symm codeset
+  // Based on an incoming data stream (originally created randomly, but can be recreated within 
+  // 2048 key), go after a particular place in the new codeset.  If that codeset spot is used, then move
+  // right or left (depending on iteration) to find the next available slot.  In this way, key generation 
+  // is speeded up by only enacting N iterations, but adds a spreading effect of the random number stream, so that keyset is also
+  // shuffled for a good spread. It is, however, repeatable, given the same number set, allowing for 
+  // quick recreation when the official stream is actually obtained.
   public Symm obtain(byte[] key) throws IOException {
-	  AES aes = null;
 	  try {
 		byte[] bytes = new byte[AES.AES_KEY_SIZE/8];
 		int offset = (Math.abs(key[(47%key.length)])+137)%(key.length-bytes.length);
@@ -620,15 +751,16 @@ public class Symm {
 		}
 
 	  	aes = new AES(bytes,0,bytes.length);
-	  
+	  } catch (Exception e) {
+		  throw new IOException(e);
+	  }
 		int filled = codeset.length;
 		char[] seq = new char[filled];
 		int end = filled--;
 		
 		boolean right = true;
 		int index;
-		
-		Obtain o = new Obtain(aes.encrypt(key),codeset.length);
+		Obtain o = new Obtain(this,key);
 		
 		while(filled>=0) {
 			index = o.next();
@@ -655,11 +787,6 @@ public class Symm {
 				right = true;
 			}
 		}
-		Symm rv = new Symm(seq,this);
-		rv.aes = aes;
-		return rv;
-	  } catch (Exception e) {
-		  throw new IOException(e);
-	  }
+		return new Symm(seq,this);
 	}
 }

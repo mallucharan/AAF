@@ -8,7 +8,7 @@ package com.att.inno.env.util;
  * 
  * Note: I read the String split and Pattern split code, and we can do this more efficiently for a single Character
  * 
- * jg1555 8/20/2015
+ * 8/20/2015
  */
 
 public class Split {

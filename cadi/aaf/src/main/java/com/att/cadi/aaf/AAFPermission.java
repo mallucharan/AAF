@@ -54,7 +54,6 @@ public class AAFPermission implements Permission {
 		return false;
 	}
 
-	 
 	public String getName() {
 		return type;
 	}

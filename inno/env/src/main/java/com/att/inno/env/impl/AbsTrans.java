@@ -96,9 +96,13 @@ public abstract class AbsTrans<ENV extends Env> implements TransStore {
 		trail.add(tt);
 	}
 
-
-//	@Override
+	@Override
 	public Metric auditTrail(int indent, StringBuilder sb, int ... flags) {
+		return auditTrail(info(),indent,sb,flags);
+	}
+	
+	@Override
+	public Metric auditTrail(LogTarget lt, int indent, StringBuilder sb, int ... flags) {
 		Metric metric = new Metric();
 		int last = (metric.entries = trail.size()) -1;
 		metric.buckets = flags.length==0?EMPTYF:new float[flags.length];
@@ -118,7 +122,7 @@ public abstract class AbsTrans<ENV extends Env> implements TransStore {
 					if(tt.flag == flags[i]) metric.buckets[i]+=ms;
 				}
 			}
-		} else if(!info().isLoggable()) {
+		} else if(!lt.isLoggable()) {
 			boolean first = true;
 			for(TimeTaken tt : trail) {
 				float ms = tt.millis();

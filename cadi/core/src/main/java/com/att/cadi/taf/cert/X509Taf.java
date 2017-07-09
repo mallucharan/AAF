@@ -5,6 +5,8 @@ package com.att.cadi.taf.cert;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -14,6 +16,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
+import javax.net.ssl.TrustManagerFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,27 +29,33 @@ import com.att.cadi.Lur;
 import com.att.cadi.Symm;
 import com.att.cadi.Taf.LifeForm;
 import com.att.cadi.config.Config;
+import com.att.cadi.config.SecurityInfoC;
+import com.att.cadi.config.SecurityInfo;
 import com.att.cadi.lur.LocalPermission;
 import com.att.cadi.principal.TGuardPrincipal;
 import com.att.cadi.principal.X509Principal;
 import com.att.cadi.taf.HttpTaf;
 import com.att.cadi.taf.TafResp;
 import com.att.cadi.taf.TafResp.RESP;
+import com.att.cadi.util.Split;
 
 public class X509Taf implements HttpTaf {
 	
 	public static final CertificateFactory certFactory;
 	public static final MessageDigest messageDigest;
+	public static final TrustManagerFactory tmf;
 	private Access access;
 	private CertIdentity[] certIdents;
 	private Lur lur;
 	private ArrayList<String> cadiIssuers;
 	private String env;
+	private SecurityInfo si;
 
 	static {
 		try {
 			certFactory = CertificateFactory.getInstance("X.509");
 			messageDigest = MessageDigest.getInstance("SHA-256"); // use this to clone
+			tmf = TrustManagerFactory.getInstance(SecurityInfoC.SslKeyManagerFactoryAlgorithm);
 		} catch (Exception e) {
 			throw new RuntimeException("X.509 and SHA-256 are required for X509Taf",e);
 		}
@@ -72,6 +81,12 @@ public class X509Taf implements HttpTaf {
 		} catch (Exception e) {
 			certIdents = cis;
 		}
+		
+		try {
+			si = new SecurityInfo(access);
+		} catch (GeneralSecurityException | IOException e1) {
+			throw new CadiException(e1);
+		}
 	}
 
 	public static final X509Certificate getCert(byte[] certBytes) throws CertificateException {
@@ -96,6 +111,7 @@ public class X509Taf implements HttpTaf {
 		try {
 			X509Certificate[] certarr = (X509Certificate[])req.getAttribute("javax.servlet.request.X509Certificate");
 			if(certarr!=null && certarr.length>0) {
+				si.checkClientTrusted(certarr);
 				// Note: If the Issuer is not in the TrustStore, it's not added to the Cert list
 				if(cadiIssuers.contains(certarr[0].getIssuerDN().toString())) {
 					String x500 = certarr[0].getSubjectDN().getName();
@@ -106,7 +122,7 @@ public class X509Taf implements HttpTaf {
 						if(comma>0) {
 							String id= x500.substring(ou,comma);
 							String idenv[] = id.split(":");
-							if(idenv.length>1 && env.equals(idenv[1])) {
+							if(idenv.length==1 || (idenv.length>1 && env.equals(idenv[1]))) {
 								return new X509HttpTafResp(access, 
 									new X509Principal(idenv[0], certarr[0],null), 
 										id + " validated by CADI x509", RESP.IS_AUTHENTICATED);
@@ -118,8 +134,8 @@ public class X509Taf implements HttpTaf {
 
 			byte[] array = null;
 			byte[] certBytes = null;
-			X509Certificate cert;
-			String responseText;
+			X509Certificate cert=null;
+			String responseText=null;
 			String authHeader = req.getHeader("Authorization");
 
 			if(certarr!=null) {  // If cert !=null, Cert is Tested by Mutual Protocol.
@@ -139,7 +155,7 @@ public class X509Taf implements HttpTaf {
 						cert = getCert(certBytes);
 						
 						/** 
-						 * Identity from CERT if well know CA and specific encoded informatino
+						 * Identity from CERT if well know CA and specific encoded information
 						 */
 						// If found Identity doesn't work, try SignedStuff Protocol
 //									cert.checkValidity();
@@ -195,10 +211,13 @@ public class X509Taf implements HttpTaf {
 
 			// if Principal is found, check for "AS_USER" and whether this entity is trusted to declare
 			if(prin!=null) {
-//				String as_user=req.getHeader(Config.CADI_USER_CHAIN);
-//				if(as_user!=null) {
-//					// return special Principal trusts, if any
-//				}
+				String as_user=req.getHeader(Config.CADI_USER_CHAIN);
+				if(as_user!=null) {
+					if(as_user.startsWith("TGUARD ") && lur.fish(prin, new LocalPermission("com.att.aaf.trust|"+prin.getName()+"|tguard"))) {
+						prin = new TGuardPrincipal(as_user.substring(7));
+						responseText=prin.getName() + " set via trust of " + responseText;
+					}
+				}
 				return new X509HttpTafResp(
 					access,
 					prin,

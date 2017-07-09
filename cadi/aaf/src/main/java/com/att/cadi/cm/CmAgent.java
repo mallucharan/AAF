@@ -3,12 +3,9 @@
  *******************************************************************************/
 package com.att.cadi.cm;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyStore;
@@ -22,15 +19,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import com.att.cadi.Access;
+import com.att.cadi.PropAccess;
 import com.att.cadi.Symm;
 import com.att.cadi.aaf.client.ErrMessage;
 import com.att.cadi.aaf.v2_0.AAFCon;
 import com.att.cadi.aaf.v2_0.AAFConHttp;
-import com.att.cadi.client.EnvAccess;
 import com.att.cadi.client.Future;
 import com.att.cadi.config.Config;
 import com.att.cadi.http.HBasicAuthSS;
+import com.att.cadi.sso.AAFSSO;
 import com.att.inno.env.Data.TYPE;
 import com.att.inno.env.Env;
 import com.att.inno.env.TimeTaken;
@@ -56,8 +53,6 @@ public class CmAgent {
 	public static final int PASS_SIZE = 24;
 	private static int TIMEOUT;
 	
-	private static MyConsole cons;
-	
 	private static RosettaDF<CertificateRequest> reqDF;
 	private static RosettaDF<CertInfo> certDF;
 	private static RosettaDF<Artifacts> artifactsDF;
@@ -67,85 +62,98 @@ public class CmAgent {
 
 	public static void main(String[] args) {
 		int exitCode = 0;
-		env = new RosettaEnv(Config.CADI_PROP_FILES,args);
-		Deque<String> cmds = new ArrayDeque<String>();
-		for(String p : args) {
-			if(p.indexOf('=')<0) {
-				cmds.add(p);
-			}
-		}
-		
-		if(cmds.size()==0) {
-			System.out.println("Usage: java -jar <cadi-aaf-*-full.jar> cmd [<tag=value>]*");
-			System.out.println("   create   <mechID> [<machine>]");
-			System.out.println("   read     <mechID> [<machine>]");
-			System.out.println("   update   <mechID> [<machine>]");
-			System.out.println("   delete   <mechID> [<machine>]");
-			System.out.println("   copy     <mechID> <machine> <newmachine>[,<newmachine>]*");
-			System.out.println("   place    <mechID> [<machine>]");
-			System.out.println("   showpass <mechID> [<machine>]");
-			System.out.println("   check    <mechID> [<machine>]");
-			System.exit(1);
-		}
-		
-		TIMEOUT = Integer.parseInt(env.getProperty(Config.AAF_CONN_TIMEOUT, "5000"));
-		cons = TheConsole.implemented()?new TheConsole():new SubStandardConsole();
-
 		try {
-			reqDF = env.newDataFactory(CertificateRequest.class);
-			artifactsDF = env.newDataFactory(Artifacts.class);
-			certDF = env.newDataFactory(CertInfo.class);
-			errMsg = new ErrMessage(env);
-
-			placeArtifact = new HashMap<String,PlaceArtifact>();
-			placeArtifact.put(JKS, new PlaceArtifactInKeystore(JKS));
-			placeArtifact.put(PKCS12, new PlaceArtifactInKeystore(PKCS12));
-			placeArtifact.put(FILE, new PlaceArtifactInFiles());
-			placeArtifact.put(PRINT, new PlaceArtifactOnStream(System.out));
-			placeArtifact.put(SCRIPT, new PlaceArtifactScripts());
-			
-			Access access = new EnvAccess(env);
-			Trans trans = env.newTrans();
-			try {
-				getProperty(env,false, Config.CM_URL,Config.CM_URL+": ");
-				String str=env.getProperty(Config.CADI_ALIAS);
-				if(str==null) { // ask for MechID pass
-					getProperty(env,false,Config.AAF_MECHID,"Your Identity: ");
-					getProperty(env,true,Config.AAF_MECHPASS,"Password: ");
-				}
-				AAFCon<?> aafcon = new AAFConHttp(access,Config.CM_URL);
-						
-				String cmd = cmds.removeFirst();
-				if("place".equals(cmd)) {
-					placeCerts(trans,aafcon,cmds);
-				} else if("create".equals(cmd)) {
-					createArtifact(trans, aafcon,cmds);
-				} else if("read".equals(cmd)) {
-					readArtifact(trans, aafcon, cmds);
-				} else if("copy".equals(cmd)) {
-					copyArtifact(trans, aafcon, cmds);
-				} else if("update".equals(cmd)) {
-					updateArtifact(trans, aafcon, cmds);
-				} else if("delete".equals(cmd)) {
-					deleteArtifact(trans, aafcon, cmds);
-				} else if("showpass".equals(cmd)) {
-					showPass(trans,aafcon,cmds);
-				} else if("check".equals(cmd)) {
-					try {
-						exitCode = check(trans,aafcon,cmds);
-					} catch (Exception e) {
-						exitCode = 1;
-						throw e;
+			AAFSSO aafsso = new AAFSSO(args);
+			if(aafsso.loginOnly()) {
+				aafsso.setLogDefault();
+				aafsso.writeFiles();
+				System.out.println("AAF SSO information created in ~/.aaf");
+			} else {
+				PropAccess access = aafsso.access();
+				env = new RosettaEnv(access.getProperties());
+				Deque<String> cmds = new ArrayDeque<String>();
+				for(String p : args) {
+					if(p.indexOf('=')<0) {
+						cmds.add(p);
 					}
-				} else {
-					cons.printf("Unknown command \"%s\"\n", cmd);
 				}
-			} finally {
-				StringBuilder sb = new StringBuilder();
-                trans.auditTrail(4, sb, Trans.REMOTE);
-                if(sb.length()>0) {
-                	trans.info().log("Trans Info\n",sb);
-                }
+				
+				if(cmds.size()==0) {
+					aafsso.setLogDefault();
+					System.out.println("Usage: java -jar <cadi-aaf-*-full.jar> cmd [<tag=value>]*");
+					System.out.println("   create   <mechID> [<machine>]");
+					System.out.println("   read     <mechID> [<machine>]");
+					System.out.println("   update   <mechID> [<machine>]");
+					System.out.println("   delete   <mechID> [<machine>]");
+					System.out.println("   copy     <mechID> <machine> <newmachine>[,<newmachine>]*");
+					System.out.println("   place    <mechID> [<machine>]");
+					System.out.println("   showpass <mechID> [<machine>]");
+					System.out.println("   check    <mechID> [<machine>]");
+					System.exit(1);
+				}
+				
+				TIMEOUT = Integer.parseInt(env.getProperty(Config.AAF_CONN_TIMEOUT, "5000"));
+			
+				reqDF = env.newDataFactory(CertificateRequest.class);
+				artifactsDF = env.newDataFactory(Artifacts.class);
+				certDF = env.newDataFactory(CertInfo.class);
+				errMsg = new ErrMessage(env);
+	
+				placeArtifact = new HashMap<String,PlaceArtifact>();
+				placeArtifact.put(JKS, new PlaceArtifactInKeystore(JKS));
+				placeArtifact.put(PKCS12, new PlaceArtifactInKeystore(PKCS12));
+				placeArtifact.put(FILE, new PlaceArtifactInFiles());
+				placeArtifact.put(PRINT, new PlaceArtifactOnStream(System.out));
+				placeArtifact.put(SCRIPT, new PlaceArtifactScripts());
+				
+				Trans trans = env.newTrans();
+				try {
+					// show Std out again
+					aafsso.setLogDefault();
+					aafsso.setStdErrDefault();
+					
+					// if CM_URL can be obtained, add to sso.props, if written
+					String cm_url = getProperty(access,env,false, Config.CM_URL,Config.CM_URL+": ");
+					if(cm_url!=null) {
+						aafsso.addProp(Config.CM_URL, cm_url);
+					}
+					aafsso.writeFiles();
+
+					AAFCon<?> aafcon = new AAFConHttp(access,Config.CM_URL);
+
+					String cmd = cmds.removeFirst();
+					if("place".equals(cmd)) {
+						placeCerts(trans,aafcon,cmds);
+					} else if("create".equals(cmd)) {
+						createArtifact(trans, aafcon,cmds);
+					} else if("read".equals(cmd)) {
+						readArtifact(trans, aafcon, cmds);
+					} else if("copy".equals(cmd)) {
+						copyArtifact(trans, aafcon, cmds);
+					} else if("update".equals(cmd)) {
+						updateArtifact(trans, aafcon, cmds);
+					} else if("delete".equals(cmd)) {
+						deleteArtifact(trans, aafcon, cmds);
+					} else if("showpass".equals(cmd)) {
+						showPass(trans,aafcon,cmds);
+					} else if("check".equals(cmd)) {
+						try {
+							exitCode = check(trans,aafcon,cmds);
+						} catch (Exception e) {
+							exitCode = 1;
+							throw e;
+						}
+					} else {
+						AAFSSO.cons.printf("Unknown command \"%s\"\n", cmd);
+					}
+				} finally {
+					StringBuilder sb = new StringBuilder();
+	                trans.auditTrail(4, sb, Trans.REMOTE);
+	                if(sb.length()>0) {
+	                	trans.info().log("Trans Info\n",sb);
+	                }
+				}
+				aafsso.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -155,19 +163,21 @@ public class CmAgent {
 		}
 	}
 
-	private static String getProperty(Env env, boolean secure, String tag, String prompt, Object ... def) {
+	private static String getProperty(PropAccess pa, Env env, boolean secure, String tag, String prompt, Object ... def) {
 		String value;
-		if((value=env.getProperty(tag))==null) {
+		if((value=pa.getProperty(tag))==null) {
 			if(secure) {
-				value = new String(cons.readPassword(prompt, def));
+				value = new String(AAFSSO.cons.readPassword(prompt, def));
 			} else {
-				value = cons.readLine(prompt,def).trim();
+				value = AAFSSO.cons.readLine(prompt,def).trim();
 			}
 			if(value!=null) {
 				if(value.length()>0) {
+					pa.setProperty(tag,value);
 					env.setProperty(tag,value);
 				} else if(def.length==1) {
 					value=def[0].toString();
+					pa.setProperty(tag,value);
 					env.setProperty(tag,value);
 				}
 			}
@@ -175,100 +185,10 @@ public class CmAgent {
 		return value;
 	}
 
-	private interface MyConsole {
-		public String readLine(String fmt, Object ... args);
-		public char[] readPassword(String fmt, Object ... args);
-		public void printf(String fmt, Object ...args);
-	}
-
-	private static class TheConsole implements MyConsole {
-		@Override
-		public String readLine(String fmt, Object... args) {
-			String rv = System.console().readLine(fmt, args);
-			if(args.length>0 && args[0]!=null && rv.length()==0) {
-				rv = args[0].toString();
-			}
-			return rv;
-		}
-
-		@Override
-		public char[] readPassword(String fmt, Object... args) {
-			return System.console().readPassword(fmt, args);
-		}
-		
-		public static boolean implemented() {
-			return System.console()!=null;
-		}
-
-		@Override
-		public void printf(String fmt, Object... args) {
-			System.console().printf(fmt, args);
-		}
-	}
-	
-	// Substandard, because System.in doesn't do Passwords..
-	private static class SubStandardConsole implements MyConsole {
-		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		@Override
-		public String readLine(String fmt, Object... args) {
-			String rv;
-			try {
-				System.out.printf(fmt,args);
-				rv = br.readLine();
-				if(args.length==1 && rv.length()==0) {
-					rv = args[0].toString();
-				}
-			} catch (IOException e) {
-				System.err.println("uh oh...");
-				rv = "";
-			}
-			return rv;
-		}
-
-		@Override
-		public char[] readPassword(String fmt, Object... args) {
-			try {
-				System.out.printf(fmt,args);
-				return br.readLine().toCharArray();
-			} catch (IOException e) {
-				System.err.println("uh oh...");
-				return new char[0];
-			}
-		}
-
-		@Override
-		public void printf(String fmt, Object... args) {
-			System.out.printf(fmt, args);
-		}
-	}
-
-//	private static class AutoData implements MyConsole {
-////		private Env env;
-//		private Map<String,String> data;
-//
-//		@Override
-//		public String readLine(String fmt, Object... args) {
-//			String rv=data.get(fmt);
-//			return rv==null?"":rv;
-//		}
-//
-//		@Override
-//		public char[] readPassword(String fmt, Object... args) {
-//			String rv=data.get(fmt);
-//			return rv==null?new char[0]:rv.toCharArray();
-//		}
-//		
-//		@Override
-//		public void printf(String fmt, Object... args) {
-//			System.out.printf(fmt, args);
-//		}
-//
-//	}
-//	
 	private static String mechID(Deque<String> cmds) {
 		if(cmds.size()<1) {
 			String alias = env.getProperty(Config.CADI_ALIAS);
-			return alias!=null?alias:cons.readLine("MechID: ");
+			return alias!=null?alias:AAFSSO.cons.readLine("MechID: ");
 		}
 		return cmds.removeFirst();	
 	}
@@ -287,7 +207,7 @@ public class CmAgent {
 		if(cmds.size()>0) {
 			machines = cmds.removeFirst();
 		} else {
-			machines = cons.readLine("Machines (sep by ','): ");
+			machines = AAFSSO.cons.readLine("Machines (sep by ','): ");
 		}
 		return Split.split(',', machines);
 	}
@@ -299,11 +219,11 @@ public class CmAgent {
 		Artifacts artifacts = new Artifacts();
 		Artifact arti = new Artifact();
 		artifacts.getArtifact().add(arti);
-		arti.setMechid(mechID!=null?mechID:cons.readLine("MechID: "));
-		arti.setMachine(machine!=null?machine:cons.readLine("Machine (%s): ",InetAddress.getLocalHost().getHostName()));
-		arti.setCa(cons.readLine("CA: (%s): ","aaf"));
+		arti.setMechid(mechID!=null?mechID:AAFSSO.cons.readLine("MechID: "));
+		arti.setMachine(machine!=null?machine:AAFSSO.cons.readLine("Machine (%s): ",InetAddress.getLocalHost().getHostName()));
+		arti.setCa(AAFSSO.cons.readLine("CA: (%s): ","aaf"));
 		
-		String resp = cons.readLine("Types [file,jks,pkcs12] (%s): ", "jks");
+		String resp = AAFSSO.cons.readLine("Types [file,jks,script] (%s): ", "jks");
 		for(String s : Split.splitTrim(',', resp)) {
 			arti.getType().add(s);
 		}
@@ -314,11 +234,11 @@ public class CmAgent {
 
 		// Note: Sponsor is set on Creation by CM
 		String configRootName = AAFCon.reverseDomain(arti.getMechid());
-		arti.setAppName(cons.readLine("AppName (%s): ",configRootName));
-		arti.setDir(cons.readLine("Directory (%s): ", System.getProperty("user.dir")));
-		arti.setOsUser(cons.readLine("OS User (%s): ", System.getProperty("user.name")));
-		arti.setRenewDays(Integer.parseInt(cons.readLine("Renewal Days (%s):", "30")));
-		arti.setNotification(toNotification(cons.readLine("Notification (mailto owner):", "")));
+		arti.setAppName(AAFSSO.cons.readLine("Namespace (%s): ",configRootName));
+		arti.setDir(AAFSSO.cons.readLine("Directory (%s): ", System.getProperty("user.dir")));
+		arti.setOsUser(AAFSSO.cons.readLine("OS User (%s): ", System.getProperty("user.name")));
+		arti.setRenewDays(Integer.parseInt(AAFSSO.cons.readLine("Renewal Days (%s):", "30")));
+		arti.setNotification(toNotification(AAFSSO.cons.readLine("Notification (mailto owner):", "")));
 		
 		TimeTaken tt = trans.start("Create Artifact", Env.REMOTE);
 		try {
@@ -358,10 +278,10 @@ public class CmAgent {
 			if(future.get(TIMEOUT)) {
 				boolean printed = false;
 				for(Artifact a : future.value.getArtifact()) {
-					cons.printf("MechID:          %s\n",a.getMechid()); 
-					cons.printf("  Sponsor:       %s\n",a.getSponsor()); 
-					cons.printf("Machine:         %s\n",a.getMachine()); 
-					cons.printf("CA:              %s\n",a.getCa()); 
+					AAFSSO.cons.printf("MechID:          %s\n",a.getMechid()); 
+					AAFSSO.cons.printf("  Sponsor:       %s\n",a.getSponsor()); 
+					AAFSSO.cons.printf("Machine:         %s\n",a.getMachine()); 
+					AAFSSO.cons.printf("CA:              %s\n",a.getCa()); 
 					StringBuilder sb = new StringBuilder();
 					boolean first = true;
 					for(String t : a.getType()) {
@@ -369,16 +289,16 @@ public class CmAgent {
 						else{sb.append(',');}
 						sb.append(t);
 					}
-					cons.printf("Types:           %s\n",sb);
-					cons.printf("AppName:         %s\n",a.getAppName()); 
-					cons.printf("Directory:       %s\n",a.getDir());
-					cons.printf("O/S User:        %s\n",a.getOsUser());
-					cons.printf("Renew Days:      %d\n",a.getRenewDays());
-					cons.printf("Notification     %s\n",a.getNotification());
+					AAFSSO.cons.printf("Types:           %s\n",sb);
+					AAFSSO.cons.printf("Namespace:       %s\n",a.getAppName()); 
+					AAFSSO.cons.printf("Directory:       %s\n",a.getDir());
+					AAFSSO.cons.printf("O/S User:        %s\n",a.getOsUser());
+					AAFSSO.cons.printf("Renew Days:      %d\n",a.getRenewDays());
+					AAFSSO.cons.printf("Notification     %s\n",a.getNotification());
 					printed = true;
 				}
 				if(!printed) {
-					cons.printf("Artifact for %s %s does not exist", mechID, machine);
+					AAFSSO.cons.printf("Artifact for %s %s does not exist", mechID, machine);
 				}
 			} else {
 				trans.error().log(errMsg.toMsg(future));
@@ -417,7 +337,7 @@ public class CmAgent {
 						}
 					}
 					if(!printed) {
-						cons.printf("Artifact for %s %s does not exist", mechID, machine);
+						AAFSSO.cons.printf("Artifact for %s %s does not exist", mechID, machine);
 					}
 				} else {
 					trans.error().log(errMsg.toMsg(future));
@@ -443,10 +363,10 @@ public class CmAgent {
 					Artifact arti = new Artifact();
 					artifacts.getArtifact().add(arti);
 					
-					cons.printf("For %s on %s\n", a.getMechid(),a.getMachine());
+					AAFSSO.cons.printf("For %s on %s\n", a.getMechid(),a.getMachine());
 					arti.setMechid(a.getMechid());
 					arti.setMachine(a.getMachine());
-					arti.setCa(cons.readLine("CA: (%s): ",a.getCa()));
+					arti.setCa(AAFSSO.cons.readLine("CA: (%s): ",a.getCa()));
 					StringBuilder sb = new StringBuilder();
 					boolean first = true;
 					for(String t : a.getType()) {
@@ -455,7 +375,7 @@ public class CmAgent {
 						sb.append(t);
 					}
 	
-					String resp = cons.readLine("Types [file,jks,pkcs12] (%s): ", sb);
+					String resp = AAFSSO.cons.readLine("Types [file,jks,pkcs12] (%s): ", sb);
 					for(String s : Split.splitTrim(',', resp)) {
 						arti.getType().add(s);
 					}
@@ -465,15 +385,15 @@ public class CmAgent {
 					}
 
 					// Note: Sponsor is set on Creation by CM
-					arti.setAppName(cons.readLine("AppName (%s): ",a.getAppName()));
-					arti.setDir(cons.readLine("Directory (%s): ", a.getDir()));
-					arti.setOsUser(cons.readLine("OS User (%s): ", a.getOsUser()));
-					arti.setRenewDays(Integer.parseInt(cons.readLine("Renew Days (%s):", a.getRenewDays())));
-					arti.setNotification(toNotification(cons.readLine("Notification (%s):", a.getNotification())));
+					arti.setAppName(AAFSSO.cons.readLine("Namespace (%s): ",a.getAppName()));
+					arti.setDir(AAFSSO.cons.readLine("Directory (%s): ", a.getDir()));
+					arti.setOsUser(AAFSSO.cons.readLine("OS User (%s): ", a.getOsUser()));
+					arti.setRenewDays(Integer.parseInt(AAFSSO.cons.readLine("Renew Days (%s):", a.getRenewDays())));
+					arti.setNotification(toNotification(AAFSSO.cons.readLine("Notification (%s):", a.getNotification())));
 	
 				}
 				if(artifacts.getArtifact().size()==0) {
-					cons.printf("Artifact for %s %s does not exist", mechID, machine);
+					AAFSSO.cons.printf("Artifact for %s %s does not exist", mechID, machine);
 				} else {
 					Future<Artifacts> fup = aafcon.client(CM_VER).update("/cert/artifacts", artifactsDF, artifacts);
 					if(fup.get(TIMEOUT)) {
@@ -494,7 +414,7 @@ public class CmAgent {
 	
 	private static void deleteArtifact(Trans trans, AAFCon<?> aafcon, Deque<String> cmds) throws Exception {
 		String mechid = mechID(cmds);
-		String machine = mechID(cmds);
+		String machine = machine(cmds);
 		
 		TimeTaken tt = trans.start("Delete Artifact", Env.REMOTE);
 		try {
@@ -527,30 +447,34 @@ public class CmAgent {
 				// Have to wait for JDK 1.7 source...
 				//switch(artifact.getType()) {
 				if(acf.value.getArtifact()==null || acf.value.getArtifact().isEmpty()) {
-					cons.printf("There are no artifacts for %s %s", mechID, machine);
+					AAFSSO.cons.printf("===> There are no artifacts for %s %s", mechID, machine);
 				} else {
 					for(Artifact a : acf.value.getArtifact()) {
-						CertificateRequest cr = new CertificateRequest();
-						cr.setMechid(a.getMechid());
-						cr.setSponsor(a.getSponsor());
-						cr.getFqdns().add(a.getMachine());
-						Future<String> f = aafcon.client(CM_VER)
-								.setQueryParams("withTrust")
-								.updateRespondString("/cert/" + a.getCa(),reqDF, cr);
-						if(f.get(TIMEOUT)) {
-							CertInfo capi = certDF.newData().in(TYPE.JSON).load(f.body()).asObject();
-							for(String type : a.getType()) {
-								PlaceArtifact pa = placeArtifact.get(type);
-								if(pa!=null) {
-									if(rv = pa.place(trans, capi, a)) {
-										notifyPlaced(a,rv);
+						String osID = System.getProperty("user.name");
+						if(a.getOsUser().equals(osID)) {
+							CertificateRequest cr = new CertificateRequest();
+							cr.setMechid(a.getMechid());
+							cr.setSponsor(a.getSponsor());
+							cr.getFqdns().add(a.getMachine());
+							Future<String> f = aafcon.client(CM_VER)
+									.setQueryParams("withTrust")
+									.updateRespondString("/cert/" + a.getCa(),reqDF, cr);
+							if(f.get(TIMEOUT)) {
+								CertInfo capi = certDF.newData().in(TYPE.JSON).load(f.body()).asObject();
+								for(String type : a.getType()) {
+									PlaceArtifact pa = placeArtifact.get(type);
+									if(pa!=null) {
+										if(rv = pa.place(trans, capi, a)) {
+											notifyPlaced(a,rv);
+										}
 									}
 								}
+								// Cover for the above multiple pass possibilities with some static Data, then clear per Artifact
+							} else {
+								trans.error().log(errMsg.toMsg(f));
 							}
-							// Cover for the above multiple pass possibilities with some static Data, then clear per Artifact
-							ArtifactDir.clear();
 						} else {
-							trans.error().log(errMsg.toMsg(f));
+							trans.error().log("You must be OS User \"" + a.getOsUser() +"\" to place Certificates on this box");
 						}
 					}
 				}
@@ -580,7 +504,7 @@ public class CmAgent {
 				// Have to wait for JDK 1.7 source...
 				//switch(artifact.getType()) {
 				if(acf.value.getArtifact()==null || acf.value.getArtifact().isEmpty()) {
-					cons.printf("No Artifacts found for %s on %s", mechID, machine);
+					AAFSSO.cons.printf("No Artifacts found for %s on %s", mechID, machine);
 				} else {
 					String id = aafcon.defID();
 					boolean allowed;
@@ -622,7 +546,7 @@ public class CmAgent {
 								}
 							} else {
 								trans.error().printf("%s.keyfile must exist to read passwords for %s on %s",
-										f.getCanonicalPath(),a.getMechid(), a.getMachine());
+										f.getAbsolutePath(),a.getMechid(), a.getMachine());
 							}
 						}
 					}
@@ -665,7 +589,7 @@ public class CmAgent {
 				// Have to wait for JDK 1.7 source...
 				//switch(artifact.getType()) {
 				if(acf.value.getArtifact()==null || acf.value.getArtifact().isEmpty()) {
-					cons.printf("No Artifacts found for %s on %s", mechID, machine);
+					AAFSSO.cons.printf("No Artifacts found for %s on %s", mechID, machine);
 				} else {
 					String id = aafcon.defID();
 					GregorianCalendar now = new GregorianCalendar();
@@ -716,8 +640,8 @@ public class CmAgent {
 										renew.setTime(cert.getNotAfter());
 										renew.add(GregorianCalendar.DAY_OF_MONTH,-1*a.getRenewDays());
 										if(renew.after(now)) {
-											msg = String.format("As of %s, X509Certificate for %s on %s, expiration %s is still within %d renewal days.\n", 
-													Chrono.dateOnlyStamp(), a.getMechid(), a.getMachine(), cert.getNotAfter(),a.getRenewDays());
+											msg = String.format("X509Certificate for %s on %s has been checked on %s. It expires on %s; it will not be renewed until %s.\n", 
+													a.getMechid(), a.getMachine(),Chrono.dateOnlyStamp(now),cert.getNotAfter(),Chrono.dateOnlyStamp(renew));
 											trans.info().log(msg);
 											exitCode = 0; // OK
 										} else {

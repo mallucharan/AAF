@@ -118,13 +118,9 @@ public final class LocalLur extends AbsUserCache<LocalPermission> implements Str
 		User<LocalPermission> usr = getUser(user);
 		switch(type) {
 			case PASSWORD:
-				
-				System.out.println("In case Password LocalLur ++++++++++++");
 				// covers null as well as bad pass
 				if(usr!=null && cred!=null && usr.principal instanceof ConfigPrincipal) {
-					System.out.println("value of cred and user +++++++++++++++++++++++ " +cred +" " + ((ConfigPrincipal)usr.principal).getCred());
 					return Hash.isEqual(cred,((ConfigPrincipal)usr.principal).getCred());
-
 				}
 				break;
 		}
@@ -173,6 +169,14 @@ public final class LocalLur extends AbsUserCache<LocalPermission> implements Str
 
 	public boolean handlesExclusively(Permission pond) {
 		return supportingGroups.contains(pond.getKey());
+	}
+
+	/* (non-Javadoc)
+	 * @see com.att.cadi.Lur#createPerm(java.lang.String)
+	 */
+	@Override
+	public Permission createPerm(String p) {
+		return new LocalPermission(p);
 	}
 
 }

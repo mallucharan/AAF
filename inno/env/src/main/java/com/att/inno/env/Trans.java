@@ -43,6 +43,8 @@ public interface Trans extends Env {
 	 * @param sb
 	 * @return	 
 	 */
+	public Metric auditTrail(LogTarget lt, int indent, StringBuilder sb, int ... flag);
+
 	public Metric auditTrail(int indent, StringBuilder sb, int ... flag);
 
 	public class Metric {

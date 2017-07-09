@@ -1,10 +1,13 @@
 /*******************************************************************************
  * Copyright (c) 2016 AT&T Intellectual Property. All rights reserved.
  *******************************************************************************/
+
 package com.att.cadi.filter;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -16,20 +19,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.att.cadi.Access;
+import com.att.cadi.Access.Level;
 import com.att.cadi.CadiException;
 import com.att.cadi.CadiWrap;
-import com.att.cadi.CredVal;
 import com.att.cadi.Lur;
-import com.att.cadi.Taf;
+import com.att.cadi.PropAccess;
+import com.att.cadi.ServletContextAccess;
 import com.att.cadi.TrustChecker;
 import com.att.cadi.config.Config;
 import com.att.cadi.config.Get;
-import com.att.cadi.config.MultiGet;
-import com.att.cadi.lur.EpiLur;
-import com.att.cadi.lur.NullLur;
-import com.att.cadi.taf.HttpTaf;
-import com.att.cadi.taf.NullTaf;
 import com.att.cadi.taf.TafResp;
+import com.att.cadi.taf.TafResp.RESP;
 
 /**
  * CadiFilter
@@ -45,19 +45,16 @@ import com.att.cadi.taf.TafResp;
  * 
  *
  */
-public class CadiFilter extends CadiAccess implements Filter {
-	private HttpTaf epiTaf = null;
-	private Lur lur = null;
-	private CredVal up = null;
-	private Object additionalTafLurs[];
-	private String[] pathExceptions;
-	private ArrayList<Pair> mapPairs;
+public class CadiFilter implements Filter {
+	private static CadiHTTPManip httpChecker;
+	private static String[] pathExceptions;
+	private static List<Pair> mapPairs;
+	private Access access;
+	private Object[] additionalTafLurs;
+	private static int count=0;
 	
-	private static final Object[] noAdditional = new Object[0]; // CadiFilter can be created each call in some systems
-	
-
 	public Lur getLur() {
-		return lur;
+		return httpChecker.getLur();
 	}
 	
 	/**
@@ -69,33 +66,36 @@ public class CadiFilter extends CadiAccess implements Filter {
 	 * 
 	 */
 	public CadiFilter() {
-		super(null);
-		// Lock down any behavior while uninitialized
-		// 4/15/2014 - jg - found an issue where if another CadiFilter is created after first one, then the NullTaf overwrites
-		// Config.  Therefore, only initialize if the object is null.
-		// This construct is to avoid synchronizing if possible, as some Containers may create new filters at unknown times.
-		if(epiTaf==null) {
-			// Don't start changing unless have lock
-			if(epiTaf==null) epiTaf = new NullTaf();
-			if(lur==null) lur = new NullLur();
-		}
-		additionalTafLurs = noAdditional; // CadiFilter may be called for each transaction in some Containers
-	}
-	
-	public CadiFilter(Access access, Object ... moreTafLurs) {
-		super(null);
-		// Lock down any behavior while uninitialized
-		// 4/15/2014 - jg - found an issue where if another CadiFilter is created after first one, then the NullTaf overwrites
-		// Config.  Therefore, only initialize if the object is null.
-		// This construct is to avoid synchronizing if possible, as some Containers may create new filters at unknown times.
-		if(epiTaf==null) {
-			if(epiTaf==null) epiTaf = new NullTaf();
-			if(lur==null) lur = new NullLur();
-		}
-		additionalTafLurs = moreTafLurs;
-		getter = new AccessGetter(access);
+		additionalTafLurs = CadiHTTPManip.noAdditional;
 	}
 
+	/**
+	 * This constructor to be used when directly constructing and placing in HTTP Engine
+	 * 
+	 * @param access
+	 * @param moreTafLurs
+	 * @throws ServletException 
+	 */
+	public CadiFilter(Access access, Object ... moreTafLurs) throws ServletException {
+		additionalTafLurs = moreTafLurs;
+		init(new AccessGetter(this.access = access));
+	}
+
+
+	/**
+	 * Use this to pass in a PreContructed CADI Filter, but with initializing... let Servlet do it
+	 * @param init
+	 * @param access
+	 * @param moreTafLurs
+	 * @throws ServletException
+	 */
+	public CadiFilter(boolean init, PropAccess access, Object ... moreTafLurs) throws ServletException {
+		this.access = access;
+		if(init) {
+			init(new AccessGetter(access));
+		}
+		additionalTafLurs = moreTafLurs;
+	}
 
 	/**
 	 * Init
@@ -107,83 +107,83 @@ public class CadiFilter extends CadiAccess implements Filter {
 	//TODO Always validate changes against Tomcat AbsCadiValve and Jaspi CadiSAM Init functions
 	public void init(FilterConfig filterConfig) throws ServletException {
 		// need the Context for Logging, instantiating ClassLoader, etc
-		context = filterConfig.getServletContext();
+		ServletContextAccess sca=new ServletContextAccess(filterConfig); 
+		if(access==null) {
+			access = sca;
+		}
 		
 		// Set Protected getter with base Access, for internal class instantiations
-		init(new FCGet(this, context, filterConfig));
-	}
-	
-	public void init(Access access) throws ServletException {	
-		init(new AccessGetter(access));
+		init(new FCGet(access, sca.context(), filterConfig));
 	}
 	
 
-    public void init(Get getter) throws ServletException {
-        super.getter = new MultiGet(getter,new AccessGetter(this));
-
-        try {
-            Config.configPropFiles(super.getter, this);  
-        }
-        catch (Exception e )
-        {
-            throw new ServletException(e);
-        }
-        
+   private void init(Get getter) throws ServletException {
         // Start with the assumption of "Don't trust anyone".
-        TrustChecker tc = TrustChecker.NOTRUST;
-        
-        // Choose Log level (make sure you have capacity for heavily used systems)
-        willWrite = Level.valueOf(super.getter.get(Config.CADI_LOGLEVEL,Level.INFO.name(),true));
-
+	   TrustChecker tc = TrustChecker.NOTRUST; // default position
+	   try {
+		   @SuppressWarnings("unchecked")
+		   Class<TrustChecker> ctc = (Class<TrustChecker>) Class.forName("com.att.cadi.aaf.v2_0.AAFTrustChecker");
+		   if(ctc!=null) {
+			   Constructor<TrustChecker> contc = ctc.getConstructor(Access.class);
+			   if(contc!=null) {
+				   tc = contc.newInstance(access);
+			   }
+		   }
+	   } catch (Exception e) {
+		   access.log(Level.INIT, "AAFTrustChecker cannot be loaded",e.getMessage());
+	   }
+       
         
         // Synchronize, because some instantiations call init several times on the same object
         // In this case, the epiTaf will be changed to a non-NullTaf, and thus not instantiate twice.
-		synchronized(noAdditional /*will always remain same Object*/) {
-			if(epiTaf instanceof NullTaf) {
+		synchronized(CadiHTTPManip.noAdditional /*will always remain same Object*/) {
+			++count;
+			if(httpChecker == null) {
+				if(access==null) {
+					access = new PropAccess();
+				}
 				try {
-					
-					lur = Config.configLur(super.getter, this, additionalTafLurs); 
-					if(lur instanceof EpiLur) {
-						up = ((EpiLur)lur).getUserPassImpl();
-					} else if(lur instanceof CredVal) {
-						up = (CredVal)lur;
-					} else {
-						up = null;
-					}
-					epiTaf = Config.configHttpTaf(this, tc, super.getter, up, lur, additionalTafLurs);
+					httpChecker = new CadiHTTPManip(access,null /*reuseable Con*/,tc, additionalTafLurs);
 				} catch (CadiException e1) {
 					throw new ServletException(e1);
 				}
+			} else if(access==null) {
+				access= httpChecker.getAccess();
 			}
 
 			/*
 			 * Setup Authn Path Exceptions
 			 */
-			String str = super.getter.get(Config.CADI_NOAUTHN, null, true);
-			if(str!=null) {
-				pathExceptions = str.split("\\s*:\\s*");
+			if(pathExceptions==null) {
+				String str = getter.get(Config.CADI_NOAUTHN, null, true);
+				if(str!=null) {
+					pathExceptions = str.split("\\s*:\\s*");
+				}
 			}
 	
 			/* 
 			 * SETUP Permission Converters... those that can take Strings from a Vendor Product, and convert to appropriate AAF Permissions
 			 */
-			if((str = super.getter.get(Config.AAF_PERM_MAP, null, true))!=null) {
-				String mstr = super.getter.get(Config.AAF_PERM_MAP, null, true);
-				if(mstr!=null) {
-					String map[] = mstr.split("\\s*:\\s*");
-					if(map.length>0) {
-						MapPermConverter mpc=null;
-						int idx;
-						mapPairs = new ArrayList<Pair>();
-						for(String entry : map) {
-							if((idx=entry.indexOf('='))<0) { // it's a Path, so create a new converter
-								log(Level.INIT,"Loading Perm Conversions for:",entry);
-								mapPairs.add(new Pair(entry,mpc=new MapPermConverter()));
-							} else {
-								if(mpc!=null) {
-									mpc.map().put(entry.substring(0,idx),entry.substring(idx+1));
+			if(mapPairs==null) {
+				String str = getter.get(Config.AAF_PERM_MAP, null, true);
+				if(str!=null) {
+					String mstr = getter.get(Config.AAF_PERM_MAP, null, true);
+					if(mstr!=null) {
+						String map[] = mstr.split("\\s*:\\s*");
+						if(map.length>0) {
+							MapPermConverter mpc=null;
+							int idx;
+							mapPairs = new ArrayList<Pair>();
+							for(String entry : map) {
+								if((idx=entry.indexOf('='))<0) { // it's a Path, so create a new converter
+									access.log(Level.INIT,"Loading Perm Conversions for:",entry);
+									mapPairs.add(new Pair(entry,mpc=new MapPermConverter()));
 								} else {
-									log(Level.ERROR,"cadi_perm_map is malformed; ",entry, "is skipped");
+									if(mpc!=null) {
+										mpc.map().put(entry.substring(0,idx),entry.substring(idx+1));
+									} else {
+										access.log(Level.ERROR,"cadi_perm_map is malformed; ",entry, "is skipped");
+									}
 								}
 							}
 						}
@@ -194,16 +194,20 @@ public class CadiFilter extends CadiAccess implements Filter {
 
 		// Remove Getter
         getter = Get.NULL;
-
 	}
 
 	/**
 	 * Containers call "destroy" when time to cleanup 
 	 */
 	public void destroy() {
-		log(Level.INFO,"CadiFilter destroyed.");
-		if(lur!=null) {
-			lur.destroy();
+		// Synchronize, in case multiCadiFilters are used.
+		synchronized(CadiHTTPManip.noAdditional) {
+			if(--count<=0 && httpChecker!=null) {
+				httpChecker.destroy();
+				httpChecker=null;
+				access=null;
+				pathExceptions=null;
+			}
 		}
 	}
 
@@ -221,51 +225,19 @@ public class CadiFilter extends CadiAccess implements Filter {
 				chain.doFilter(request, response);
 			} else {
 				HttpServletResponse hresp = (HttpServletResponse)response;
-				TafResp tresp = epiTaf.validate(Taf.LifeForm.LFN, hreq, hresp);
-				switch(tresp.isAuthenticated()) {
-					case IS_AUTHENTICATED:
-						log(Level.AUDIT,"Valid Credential:", tresp.desc(), FROM, request.getRemoteAddr(), ':', request.getRemotePort());
-						chain.doFilter(new CadiWrap(hreq, tresp, lur,getConverter(hreq)),response);
-						break;
-					case TRY_AUTHENTICATING:
-						boolean sec = !tresp.isValid() && tresp.desc().startsWith("User/Pass");
-						if(sec) {
-							log(Level.AUDIT, tresp.desc());
+				TafResp tresp = httpChecker.validate(hreq, hresp);
+				if(tresp.isAuthenticated()==RESP.IS_AUTHENTICATED) {
+						CadiWrap cw = new CadiWrap(hreq, tresp, httpChecker.getLur(),getConverter(hreq));
+						if(httpChecker.notCadi(cw, hresp)) {
+							chain.doFilter(cw,response);
 						}
-	
-						switch (tresp.authenticate()) {
-							case IS_AUTHENTICATED:
-								if(sec)
-									log(Level.INFO,"Authenticated: ", tresp.desc());
-								else 
-									log(Level.INFO,"Authenticated: ", tresp.desc(), FROM, request.getRemoteAddr(), ':', request.getRemotePort());
-								chain.doFilter(new CadiWrap(hreq, tresp, lur,getConverter(hreq)),response);
-								break;
-							case HTTP_REDIRECT_INVOKED:
-								log(Level.INFO,"Authenticating via redirection: ", tresp.desc());
-								break;
-							case NO_FURTHER_PROCESSING:
-								log(Level.AUDIT,"Authentication Failure: ", tresp.desc(), FROM, request.getRemoteAddr(), ':', request.getRemotePort());
-								hresp.sendError(403, tresp.desc()); // Forbidden
-								break;
-							default:
-								log(Level.AUDIT,"No TAF will authorize for request from ", request.getRemoteAddr(), ':', request.getRemotePort());
-								hresp.sendError(403, tresp.desc()); // Forbidden
-						}
-						break;
-					case NO_FURTHER_PROCESSING:
-						log(Level.AUDIT,"Authentication Failure: ", tresp.desc(), FROM, request.getRemoteAddr(), ':', request.getRemotePort());
-						hresp.sendError(403, "Access Denied"); // FORBIDDEN
-						break;
-					default:
-						log(Level.AUDIT,"No TAF will authorize for request from ", request.getRemoteAddr(), ':', request.getRemotePort());
-						hresp.sendError(403, "Access Denied"); // FORBIDDEN
-				}
+				}						
 			}
 		} catch (ClassCastException e) {
 			throw new ServletException("CadiFilter expects Servlet to be an HTTP Servlet",e);
 		}
 	}
+
 
 	/** 
 	 * If PathExceptions exist, report if these should not have Authn applied.
@@ -289,8 +261,10 @@ public class CadiFilter extends CadiAccess implements Filter {
 	private PermConverter getConverter(HttpServletRequest hreq) {
 		if(mapPairs!=null) {
 			String pi = hreq.getPathInfo();
+			if(pi!=null) {
 			for(Pair p: mapPairs) {
 				if(pi.startsWith(p.name))return p.pc;
+			}
 			}
 		}
 		return NullPermConverter.singleton();

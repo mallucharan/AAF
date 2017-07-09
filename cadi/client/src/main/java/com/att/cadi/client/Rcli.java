@@ -71,7 +71,7 @@ public abstract class Rcli<CT> {
 		rv.apiVersion = apiVersion;
 		return rv;
 	}
-
+	
 	protected abstract Rcli<CT> clone(URI uri, SecuritySetter<CT> ss);
 	
 	public abstract void invalidate() throws CadiException;
@@ -95,6 +95,11 @@ public abstract class Rcli<CT> {
 		this.apiVersion = apiVersion;
 		return this;
 	}
+	
+	public boolean isApiVersion(String prospective) {
+		return apiVersion.equals(prospective);
+	}
+
 
 	public String typeString(Class<?> cls) {
 		return "application/"+cls.getSimpleName()+"+"+type.name().toLowerCase()+
@@ -256,7 +261,6 @@ public abstract class Rcli<CT> {
 		return client.futureReadString();
 	}
 
-	
 	public<T> Future<T> read(String pathinfo, String accept, RosettaDF<T> df, String ... headers) throws APIException, CadiException {
 		final int idx = pathinfo.indexOf('?');
 		final String qp; 

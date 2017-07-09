@@ -9,6 +9,7 @@ import com.att.cadi.CadiException;
 import com.att.cadi.util.Chmod;
 import com.att.inno.env.Trans;
 import com.att.inno.env.util.Chrono;
+import com.att.inno.env.util.Split;
 
 import certman.v1_0.Artifacts.Artifact;
 import certman.v1_0.CertInfo;
@@ -26,6 +27,19 @@ public class PlaceArtifactScripts extends ArtifactDir {
 			}  else {
 				email=arti.getOsUser() + '\n';
 			}
+			
+			StringBuilder classpath = new StringBuilder();
+			boolean first = true;
+			for(String pth : Split.split(File.pathSeparatorChar, System.getProperty("java.class.path"))) {
+				if(first) {
+					first=false;
+				} else {
+					classpath.append(File.pathSeparatorChar);
+				}
+				File f = new File(pth);
+				classpath.append(f.getCanonicalPath().replaceAll("[0-9]+\\.[0-9]+\\.[0-9]+","*"));
+			}
+			
 			write(f1,Chmod.to644,
 					"#!/bin/bash " + f1.getCanonicalPath()+'\n',
 					"# Certificate Manager Check Script\n",
@@ -34,6 +48,7 @@ public class PlaceArtifactScripts extends ArtifactDir {
 					"DIR="+arti.getDir()+'\n',
 					"APP="+arti.getAppName()+'\n',
 					"EMAIL="+email,
+					"CP=\""+classpath.toString()+"\"\n",
 					checkScript
 					);
 			
@@ -62,8 +77,8 @@ public class PlaceArtifactScripts extends ArtifactDir {
 			"function mailit {\n" +
 			"  printf \"$*\" | /bin/mail -s \"AAF Certman Notification for `uname -n`\" $EMAIL\n"+
 			"}\n\n" +
-			System.getProperty("java.home") + "/bin/" +"java -jar " +
-				System.getProperty("java.class.path") +
+			System.getProperty("java.home") + "/bin/" +"java -cp $CP " +
+				CmAgent.class.getName() + 
 				" cadi_prop_files=$DIR/$APP.props check 2>  $DIR/$APP.STDERR > $DIR/$APP.STDOUT\n" +
 			"case \"$?\" in\n" +
 			"  0)\n" +

@@ -11,7 +11,7 @@ import java.security.Principal;
  *
  */
 public interface CachedPrincipal extends Principal {
-	public enum Resp {NOT_MINE,UNVALIDATED,REVALIDATED, INACCESSIBLE};
+	public enum Resp {NOT_MINE,UNVALIDATED,REVALIDATED,INACCESSIBLE,DENIED};
 	
 	/**
 	 * Re-validate with Creator

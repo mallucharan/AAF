@@ -26,4 +26,34 @@ public class UserChainManip {
 		}
 		return sb;
 	}
+	
+	public static String idToNS(String id) {
+		if(id==null) {
+			return "";
+		} else {
+			StringBuilder sb = new StringBuilder();
+			char c;
+			int end;
+			boolean first = true;
+			for(int idx = end = id.length()-1;idx>=0;--idx) {
+				if((c = id.charAt(idx))=='@' || c=='.')  {
+					if(idx<end) {
+						if(first) {
+							first = false;
+						} else {
+							sb.append('.');
+						}
+						for(int i=idx+1;i<=end;++i) {
+							sb.append(id.charAt(i));
+						}
+					}
+					end=idx-1;
+					if(c=='@') {
+						break;
+					}
+				}
+			}
+			return sb.toString();
+		}
+	}
 }

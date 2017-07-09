@@ -5,6 +5,7 @@ package com.data.test;
 
 import java.io.StringReader;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.att.inno.env.Data;
@@ -20,6 +21,7 @@ import com.att.rosetta.env.RosettaEnv;
 
 import s.xsd.LargerData;
 import s.xsd.Multi;
+import s.xsd.SampleData;
 
 public class JU_RosettaDF {
 	public static int ITERATIONS = 1;
@@ -122,4 +124,22 @@ public class JU_RosettaDF {
 		
 	}
 
+	@Test
+	public void testQuotes() throws Exception {
+		RosettaEnv env = new RosettaEnv();
+		RosettaDF<SampleData> df = env.newDataFactory(SampleData.class);
+
+		SampleData sd = new SampleData();
+		sd.setId("\"AT&T Services, Inc.\"");
+		System.out.println(sd.getId());
+		String out =df.newData().load(sd).out(TYPE.JSON).asString();
+		System.out.println(out);
+		Assert.assertEquals(
+				"{\"id\":\"\\\"AT&T Services, Inc.\\\"\",\"date\":0}",
+				out);
+		
+		SampleData sd2 = df.newData().in(TYPE.JSON).load(out).asObject();
+		System.out.println(sd2.getId());
+		Assert.assertEquals(sd.getId(),sd2.getId());
+	}
 }

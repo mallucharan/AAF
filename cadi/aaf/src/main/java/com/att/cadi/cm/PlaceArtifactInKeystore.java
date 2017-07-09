@@ -22,10 +22,11 @@ import certman.v1_0.CertInfo;
 public class PlaceArtifactInKeystore extends ArtifactDir {
 	private String kst;
 	//TODO get ROOT DNs or Trusted DNs from Certificate Manager.
-	private static String[] rootDNs = new String[]{			
-			"CN=ATT CADI Root CA - Test, O=ATT, OU=CSO, C=US",	
-			"CN=ATT AAF CADI CA, OU=CSO, O=ATT, C=US"
-	};
+//	private static String[] rootDNs = new String[]{			
+//			"CN=ATT CADI Root CA - Test, O=ATT, OU=CSO, C=US", // Lab.  delete eventually
+//			"CN=ATT AAF CADI TEST CA, OU=CSO, O=ATT, C=US",
+//			"CN=ATT AAF CADI CA, OU=CSO, O=ATT, C=US"
+//	};
 
 	public PlaceArtifactInKeystore(String kst) {
 		this.kst = kst;
@@ -41,36 +42,15 @@ public class PlaceArtifactInKeystore extends ArtifactDir {
 			}	
 
 			// Get the Cert(s)... Might include Trust store
-			Collection<? extends Certificate> certColl = Factory.toX509Certificate(trans, certInfo.getCerts());
-			Certificate[] certs = new Certificate[certColl.size()];
+			Collection<? extends Certificate> certColl = Factory.toX509Certificate(certInfo.getCerts());
+			X509Certificate[] certs = new X509Certificate[certColl.size()];
 			certColl.toArray(certs);
 			
-			boolean first = true;
-			StringBuilder issuers = new StringBuilder();
-			for(Certificate c : certs) {
-				if(c instanceof X509Certificate) {
-					X509Certificate xc = (X509Certificate)c;
-					String issuer = xc.getIssuerDN().toString();
-					for(String root : rootDNs) {
-						if(root.equals(issuer)) {
-							if(first) {
-								first=false;
-							} else {
-								issuers.append(":");
-							}
-							if(xc.getSubjectDN().toString().contains("Issuing CA")) {
-								issuers.append(xc.getSubjectDN());
-							}
-						}
-					}
-				}
-			}
-			addProperty(Config.CADI_X509_ISSUERS,issuers.toString());
 
 			// Add CADI Keyfile Entry to Properties
 			addProperty(Config.CADI_KEYFILE,arti.getDir()+'/'+arti.getAppName() + ".keyfile");
 			// Set Keystore Password
-			addProperty(Config.CADI_KEYSTORE,fks.getCanonicalPath());
+			addProperty(Config.CADI_KEYSTORE,fks.getAbsolutePath());
 			String keystorePass = Symm.randomGen(CmAgent.PASS_SIZE);
 			addEncProperty(Config.CADI_KEYSTORE_PASSWORD,keystorePass);
 			char[] keystorePassArray = keystorePass.toCharArray();
@@ -108,7 +88,7 @@ public class PlaceArtifactInKeystore extends ArtifactDir {
 			jks = KeyStore.getInstance(kst);
 			
 			// Set Truststore Password
-			addProperty(Config.CADI_TRUSTSTORE,fks.getCanonicalPath());
+			addProperty(Config.CADI_TRUSTSTORE,fks.getAbsolutePath());
 			String trustStorePass = Symm.randomGen(CmAgent.PASS_SIZE);
 			addEncProperty(Config.CADI_TRUSTSTORE_PASSWORD,trustStorePass);
 			char[] truststorePassArray = trustStorePass.toCharArray();
@@ -116,10 +96,10 @@ public class PlaceArtifactInKeystore extends ArtifactDir {
 			
 			// Add Trusted Certificates
 			for(int i=1; i<certs.length;++i) {
-				jks.setCertificateEntry("cadi_" + arti.getCa() + '_' + i, certs[i]);
+				jks.setCertificateEntry("cadi_root_" + arti.getCa() + '_' + i, certs[i]);
 			}
 			// Write out
-			write(fks,Chmod.to400,jks,truststorePassArray);
+			write(fks,Chmod.to644,jks,truststorePassArray);
 
 		} catch (Exception e) {
 			throw new CadiException(e);

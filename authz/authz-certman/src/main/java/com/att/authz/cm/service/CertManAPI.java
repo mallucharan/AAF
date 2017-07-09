@@ -13,6 +13,8 @@ import java.util.Properties;
 import java.util.TreeMap;
 
 import com.att.aft.dme2.api.DME2Exception;
+//import com.att.aft.dme2.api.DME2FilterHolder;
+//import com.att.aft.dme2.api.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.DME2Manager;
 import com.att.aft.dme2.api.DME2Server;
 import com.att.aft.dme2.api.DME2ServerProperties;
@@ -20,6 +22,7 @@ import com.att.aft.dme2.api.DME2ServiceHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder;
 import com.att.aft.dme2.api.util.DME2FilterHolder.RequestDispatcherType;
 import com.att.aft.dme2.api.util.DME2ServletHolder;
+//import com.att.aft.dme2.api.DME2ServletHolder;
 import com.att.authz.cm.api.API_Artifact;
 import com.att.authz.cm.api.API_Cert;
 import com.att.authz.cm.ca.CA;
@@ -32,22 +35,28 @@ import com.att.authz.env.AuthzTransFilter;
 import com.att.authz.server.AbsServer;
 import com.att.cache.Cache;
 import com.att.cache.Cache.Dated;
+import com.att.cadi.Access;
+import com.att.cadi.Access.Level;
 import com.att.cadi.CadiException;
 import com.att.cadi.TrustChecker;
 import com.att.cadi.aaf.v2_0.AAFAuthn;
 import com.att.cadi.aaf.v2_0.AAFCon;
 import com.att.cadi.aaf.v2_0.AAFConHttp;
 import com.att.cadi.aaf.v2_0.AAFLurPerm;
+import com.att.cadi.aaf.v2_0.AAFTrustChecker;
+import com.att.cadi.config.Config;
 import com.att.cssa.rserv.HttpMethods;
 import com.att.inno.env.APIException;
 import com.att.inno.env.Data;
+import com.att.inno.env.Env;
 import com.att.inno.env.Trans;
 import com.att.inno.env.util.Split;
 
 public class CertManAPI extends AbsServer {
-	private static final String AAF_CERTMAN_CA_PREFIX = "aaf_certman_ca.";
+
 	private static final String USER_PERMS = "userPerms";
 	private static final Map<String,CA> certAuths = new TreeMap<String,CA>();
+	private static final String AAF_CERTMAN_CA_PREFIX = null;
 	public Facade1_0 facade1_0; // this is the default Facade
 	public Facade1_0 facade1_0_XML; // this is the XML Facade
 	public Map<String, Dated> cacheUser;
@@ -70,12 +79,16 @@ public class CertManAPI extends AbsServer {
 		super(env,"CertMan");
 		env.setLog4JNames("log4j.properties","authz","cm","audit","init","trace");
 		
-		aafcon = new AAFConHttp(env);
+		//aafcon = new AAFConHttp(env);
 		
 		aafLurPerm = aafcon.newLur();
 		// Note: If you need both Authn and Authz construct the following:
 		aafAuthn = aafcon.newAuthn(aafLurPerm);
 
+		String aaf_env = env.getProperty(Config.AAF_ENV);
+		if(aaf_env==null) {
+			throw new APIException("aaf_env needs to be set");
+		}
 		
 		// Initialize Facade for all uses
 		AuthzTrans trans = env.newTrans();
